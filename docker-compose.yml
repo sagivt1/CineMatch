@@ -10,6 +10,9 @@ services:
     command: sh -c "echo 'Frontend container ready' && tail -f /dev/null"
     networks:
       - cinematch-net
+    depends_on:
+      - gateway
+      - core
 
   gateway:
     image: node:22-alpine
@@ -23,7 +26,9 @@ services:
     networks:
       - cinematch-net
     depends_on:
-      - core
+      users_db:
+        condition: service_healthy
+
 
   core:
     build: ./core
@@ -36,17 +41,37 @@ services:
     networks:
       - cinematch-net
     depends_on:
-      db:
+      movies_db:
         condition: service_healthy
 
-  db:
+  movies_db:
     image: postgres:15-alpine
-    container_name: cinematch-postgres
+    container_name: cinematch-movies-postgres
     restart: always
     environment:
-      POSTGRES_USER: cinematch_admin
-      POSTGRES_PASSWORD: cinematch_password
-      POSTGRES_DB: cinematch_db
+      POSTGRES_USER: cinematch_movies_admin
+      POSTGRES_PASSWORD: cinematch_movies_password
+      POSTGRES_DB: cinematch_movies_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cinematch-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cinematch_admin -d cinematch_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  users_db:
+    image: postgres:15-alpine
+    container_name: cinematch-users-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: cinematch_users_admin
+      POSTGRES_PASSWORD: cinematch_users_password
+      POSTGRES_DB: cinematch_users_db
     ports:
       - "5432:5432"
     volumes:
