@@ -1,0 +1,74 @@
+<section class="auth-page" aria-label="Register">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="brand-icon">🎬</span>
+            <h1 class="brand-name">CineMatch</h1>
+            <p class="brand-tagline">Join the community</p>
+        </div>
+
+        <h2 class="auth-title">Create account</h2>
+
+        @if (errorMessage()) {
+        <div class="error-banner" role="alert">
+            {{ errorMessage() }}
+        </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+            <div class="field">
+                <label class="field-label" for="reg-display-name">Display name</label>
+                <input id="reg-display-name" class="field-input" type="text" formControlName="displayName"
+                    placeholder="Your name" autocomplete="name"
+                    [class.invalid]="form.controls.displayName.invalid && form.controls.displayName.touched" />
+                @if (form.controls.displayName.invalid && form.controls.displayName.touched) {
+                <span class="field-error">Display name must be at least 2 characters.</span>
+                }
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="reg-email">Email</label>
+                <input id="reg-email" class="field-input" type="email" formControlName="email"
+                    placeholder="you@example.com" autocomplete="email"
+                    [class.invalid]="form.controls.email.invalid && form.controls.email.touched" />
+                @if (form.controls.email.invalid && form.controls.email.touched) {
+                <span class="field-error">Please enter a valid email address.</span>
+                }
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="reg-password">Password</label>
+                <input id="reg-password" class="field-input" type="password" formControlName="password"
+                    placeholder="••••••••" autocomplete="new-password"
+                    [class.invalid]="form.controls.password.invalid && form.controls.password.touched" />
+                @if (form.controls.password.invalid && form.controls.password.touched) {
+                <span class="field-error">Password must be at least 6 characters.</span>
+                }
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="reg-confirm-password">Confirm password</label>
+                <input id="reg-confirm-password" class="field-input" type="password" formControlName="confirmPassword"
+                    placeholder="••••••••" autocomplete="new-password"
+                    [class.invalid]="form.errors?.['passwordMismatch'] && form.controls.confirmPassword.touched" />
+                @if (form.errors?.['passwordMismatch'] && form.controls.confirmPassword.touched) {
+                <span class="field-error">Passwords do not match.</span>
+                }
+            </div>
+
+            <button id="register-submit" class="btn-primary" type="submit" [disabled]="isLoading()"
+                aria-busy="{{ isLoading() }}">
+                @if (isLoading()) {
+                <span class="spinner" aria-hidden="true"></span>
+                Creating account…
+                } @else {
+                Create account
+                }
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a routerLink="/login" id="go-to-login">Sign in</a>
+        </p>
+    </div>
+</section>
