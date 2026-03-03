@@ -1,0 +1,33 @@
+// ── API DTOs ──────────────────────────────────────────────────────────────────
+// These represent the exact shapes sent/received over the wire.
+// Components should never use these directly — use AuthUser instead.
+
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    displayName: string;
+}
+
+/** Raw API response shape – adapter in AuthService maps this to AuthUser */
+export interface AuthResponse {
+    accessToken: string;
+    user: {
+        id: string;
+        email: string;
+        displayName: string;
+    };
+}
+
+// ── Internal Domain Model ─────────────────────────────────────────────────────
+// Decoupled from the raw API shape; components consume this.
+
+export interface AuthUser {
+    id: string;
+    email: string;
+    displayName: string;
+}
