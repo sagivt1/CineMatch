@@ -32,6 +32,9 @@ coverage/
 /gateway/prisma/*.db
 /gateway/prisma/*.db-journal
 
+# gateway 
+/gateway/node_modules
+
 # =========================
 # 3. Python / FastAPI (Core)
 # =========================
