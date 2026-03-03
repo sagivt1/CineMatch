@@ -22,20 +22,47 @@ services:
     command: sh -c "echo 'Gateway container ready' && tail -f /dev/null"
     networks:
       - cinematch-net
+    depends_on:
+      - core
 
-    core:
-      image: python:3.14-slim
-      container_name: cinematch-core
-      working_dir: /app
-      volumes:
-        - ./core:/app
-      ports:
-        - "8000:8000"
-      command: sh -c "echo 'FastAPI core container ready' && tail -f /dev/null"
-      networks:
-        - cinematch-net
+  core:
+    build: ./core
+    container_name: cinematch-core
+    working_dir: /app
+    volumes:
+      - ./core:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - cinematch-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    container_name: cinematch-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: cinematch_admin
+      POSTGRES_PASSWORD: cinematch_password
+      POSTGRES_DB: cinematch_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cinematch-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cinematch_admin -d cinematch_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   cinematch-net:
     driver: bridge
 
+volumes:
+  postgres-data:
+    
