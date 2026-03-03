@@ -1,0 +1,41 @@
+services:
+  frontend:
+    image: node:22-alpine
+    container_name: cinematch-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "4200:4200"
+    command: sh -c "echo 'Frontend container ready' && tail -f /dev/null"
+    networks:
+      - cinematch-net
+
+  gateway:
+    image: node:22-alpine
+    container_name: cinematch-gateway
+    working_dir: /app
+    volumes:
+      - ./gateway:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "echo 'Gateway container ready' && tail -f /dev/null"
+    networks:
+      - cinematch-net
+
+    core:
+      image: python:3.14-slim
+      container_name: cinematch-core
+      working_dir: /app
+      volumes:
+        - ./core:/app
+      ports:
+        - "8000:8000"
+      command: sh -c "echo 'FastAPI core container ready' && tail -f /dev/null"
+      networks:
+        - cinematch-net
+
+networks:
+  cinematch-net:
+    driver: bridge
+
