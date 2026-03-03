@@ -1,8 +1,11 @@
 """
 This module contains the core FastAPI application.
 """
-from fastapi import FastAPI
+
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,7 +17,9 @@ async def lifespan(app: FastAPI):
     yield
     print("[Core] Shuting Down FastApi")
 
+
 app = FastAPI(title="Core FastAPI", lifespan=lifespan)
+
 
 @app.get("/health")
 def health_check():
