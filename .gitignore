@@ -76,3 +76,4 @@ Thumbs.db
 /postgres-data/
 /rabbitmq-data/
 /garage-data/
+/agents
