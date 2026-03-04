@@ -79,4 +79,10 @@ Thumbs.db
 /postgres-data/
 /rabbitmq-data/
 /garage-data/
+
+# =========================
+# 6. Others
+# =========================
 /agents
+WORK_RULES.md
+ROADMAP.md
