@@ -8,6 +8,7 @@ dependencies = [
     "fastapi>=0.135.1",
     "psycopg2-binary>=2.9.11",
     "pydantic-settings>=2.13.1",
+    "sqlalchemy>=2.0.48",
     "sqlmodel>=0.0.37",
     "uvicorn>=0.41.0",
 ]
@@ -20,7 +21,7 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 88
+line-length = 144
 target-version = "py312"
 
 [tool.ruff.lint]

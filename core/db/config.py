@@ -5,6 +5,7 @@ This module handles loading application settings and environment variables
 using Pydantic. It defines the database connection parameters and provides
 a cached function to access these settings efficiently.
 """
+
 from functools import lru_cache
 from pathlib import Path
 
@@ -21,6 +22,7 @@ class Setting(BaseSettings):
     Application Settings Class.
     Inherits from BaseSettings to automatically load fields from environment variables.
     """
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
@@ -42,6 +44,7 @@ class Setting(BaseSettings):
         The @computed_field decorator ensures this property is included when serialized.
         """
         return f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
 
 @lru_cache()
 def get_settings() -> Setting:

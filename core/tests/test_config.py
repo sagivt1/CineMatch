@@ -4,10 +4,11 @@ Configuration Test Module.
 This module verifies that the application settings are loaded correctly from the
 environment variables and that the database engine is configured with the expected parameters.
 """
+
 import pytest
 from dotenv import dotenv_values
 
-from db.config import get_settings, ENV_FILE_PATH
+from db.config import ENV_FILE_PATH, get_settings
 from db.db import engine
 
 # We use the ENV_FILE_PATH defined in the main config to ensure we are testing
@@ -15,6 +16,7 @@ from db.db import engine
 
 
 # Fixtures
+
 
 @pytest.fixture(scope="session")
 def raw_env():
@@ -24,12 +26,14 @@ def raw_env():
     """
     return dotenv_values(ENV_FILE_PATH)
 
+
 @pytest.fixture(scope="session")
 def settings():
     """
     Fixture to load the application settings using the Pydantic model.
     """
     return get_settings()
+
 
 # Tests
 
@@ -39,9 +43,10 @@ def test_settings_load_correctly(raw_env, settings):
     Verifies that Pydantic correctly loads specific fields from the .env file.
     """
 
-    assert settings.POSTGRES_USER == raw_env['POSTGRES_USER']
-    assert settings.POSTGRES_PASSWORD == raw_env['POSTGRES_PASSWORD']
-    assert settings.POSTGRES_PORT == raw_env['POSTGRES_PORT']
+    assert settings.POSTGRES_USER == raw_env["POSTGRES_USER"]
+    assert settings.POSTGRES_PASSWORD == raw_env["POSTGRES_PASSWORD"]
+    assert settings.POSTGRES_PORT == raw_env["POSTGRES_PORT"]
+
 
 def test_database_url_construction(raw_env, settings):
     """
@@ -63,7 +68,7 @@ def test_engine_configuration(raw_env):
     """
     Verifies that the SQLAlchemy engine is created with the correct driver and database.
     """
-    
+
     # Check if the database name exists in the engine's connection URL.
     assert raw_env["POSTGRES_DB"] in str(engine.url)
     assert engine.dialect.name == "postgresql"
