@@ -52,6 +52,8 @@ services:
       POSTGRES_USER: cinematch_movies_admin
       POSTGRES_PASSWORD: cinematch_movies_password
       POSTGRES_DB: cinematch_movies_db
+      POSTGRES_HOST: movies_db
+      POSTGRES_PORT: 5432
     ports:
       - "5432:5432"
     volumes:
@@ -59,7 +61,7 @@ services:
     networks:
       - cinematch-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cinematch_admin -d cinematch_db"]
+      test: ["CMD-SHELL", "pg_isready -U cinematch_movies_admin -d cinematch_movies_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -73,13 +75,13 @@ services:
       POSTGRES_PASSWORD: cinematch_users_password
       POSTGRES_DB: cinematch_users_db
     ports:
-      - "5432:5432"
+      - "5433:5433"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - cinematch-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cinematch_admin -d cinematch_db"]
+      test: ["CMD-SHELL", "pg_isready -U cinematch_users_admin -d cinematch_users_db"]
       interval: 5s
       timeout: 5s
       retries: 5
