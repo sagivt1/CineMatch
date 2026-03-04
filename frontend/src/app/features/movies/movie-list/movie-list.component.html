@@ -1,0 +1,44 @@
+<div class="movie-list-container">
+    <header class="list-header">
+        <h1>Discover Movies</h1>
+    </header>
+
+    <!-- Loading State: Skeleton Loader -->
+    <div *ngIf="loading()" class="movie-grid">
+        <div *ngFor="let item of [1,2,3,4,5,6,7,8]" class="movie-card skeleton">
+            <div class="skeleton-poster"></div>
+            <div class="skeleton-info">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-meta"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!loading() && error()" class="error-state">
+        <p class="error-message">{{ error() }}</p>
+        <button class="retry-btn" (click)="retry()">Retry</button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !error() && movies().length === 0" class="empty-state">
+        <h2>No movies found. Add one!</h2>
+        <p>It looks like our collection is empty. Start your cinematic journey today!</p>
+        <button class="add-movie-btn">Add Movie</button>
+    </div>
+
+    <!-- Movie Grid -->
+    <div *ngIf="!loading() && !error() && movies().length > 0" class="movie-grid" role="list">
+        <div *ngFor="let movie of movies()" class="movie-card" [routerLink]="['/movies', movie.id]" role="listitem"
+            tabindex="0">
+            <img [src]="movie.posterUrl" [alt]="movie.title + ' Poster'" class="movie-poster" loading="lazy">
+            <div class="movie-info">
+                <h3 class="movie-title">{{ movie.title }}</h3>
+                <div class="movie-meta">
+                    <span class="movie-year">{{ movie.releaseDate | date:'yyyy' }}</span>
+                    <span class="movie-rating">⭐ {{ movie.rating }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

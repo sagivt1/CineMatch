@@ -1,0 +1,281 @@
+.movie-detail-container {
+    min-height: 100vh;
+    background: #000;
+    color: #fff;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80vh;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px) brightness(0.3);
+    z-index: -1;
+    transform: scale(1.1);
+    /* Prevent blurred edges */
+}
+
+.backdrop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000);
+}
+
+.movie-content {
+    position: relative;
+    z-index: 10;
+    padding: 6rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 4rem;
+}
+
+@media (max-width: 992px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
+}
+
+.detail-poster {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.info-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.back-link {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    margin-bottom: 2rem;
+    text-align: left;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #e50914;
+}
+
+.title {
+    font-size: 4rem;
+    font-weight: 900;
+    margin: 0 0 1rem;
+    letter-spacing: -2px;
+    line-height: 1;
+}
+
+.meta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: #ccc;
+}
+
+.separator {
+    color: #444;
+}
+
+.rating {
+    color: #ffc107;
+    font-weight: 700;
+}
+
+.genres {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.genre-tag {
+    padding: 0.4rem 1rem;
+    border: 1px solid #444;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #eee;
+}
+
+.description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #ddd;
+    margin-bottom: 2.5rem;
+    max-width: 800px;
+}
+
+.credits {
+    border-top: 1px solid #222;
+    padding-top: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.credit-item {
+    margin-bottom: 0.75rem;
+}
+
+.credit-item .label {
+    color: #666;
+    font-weight: 600;
+    margin-right: 1rem;
+}
+
+.credit-item .value {
+    color: #efefef;
+}
+
+.actions {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.play-btn {
+    padding: 1rem 3rem;
+    background: #e50914;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.play-btn:hover {
+    background: #b20710;
+    transform: scale(1.05);
+}
+
+.watchlist-btn {
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.watchlist-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #FFF;
+    border-bottom-color: #e50914;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotate 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 2rem;
+    text-align: center;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+}
+
+.error-state h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.error-message {
+    font-size: 1.2rem;
+    color: #ccc;
+    max-width: 500px;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.error-actions .retry-btn {
+    padding: 1rem 2rem;
+    background: #e50914;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.error-actions .retry-btn:hover {
+    background: #b20710;
+    transform: translateY(-2px);
+}
+
+.error-actions .back-btn {
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.error-actions .back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}

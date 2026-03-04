@@ -18,6 +18,18 @@ export const routes: Routes = [
             import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
     },
     {
+        path: 'movies',
+        loadComponent: () =>
+            import('./features/movies/movie-list/movie-list.component').then((m) => m.MovieListComponent),
+        canActivate: [authGuard],
+    },
+    {
+        path: 'movies/:uuid',
+        loadComponent: () =>
+            import('./features/movies/movie-detail/movie-detail.component').then((m) => m.MovieDetailComponent),
+        canActivate: [authGuard],
+    },
+    {
         path: 'dashboard',
         loadComponent: () =>
             import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
