@@ -26,6 +26,23 @@ export class AuthService {
     // ── Auth Actions ───────────────────────────────────────────────────────────
 
     login(req: LoginRequest): Observable<AuthResponse> {
+        // Mock Login for development
+        if (req.email === 'demo@cinematch.ai' && req.password === 'password123') {
+            const mockResponse: AuthResponse = {
+                accessToken: 'mock_token_' + Date.now(),
+                user: {
+                    id: '123e4567-e89b-12d3-a456-426614174000',
+                    email: 'demo@cinematch.ai',
+                    displayName: 'Demo User',
+                },
+            };
+            return new Observable<AuthResponse>((subscriber) => {
+                this.handleAuthResponse(mockResponse);
+                subscriber.next(mockResponse);
+                subscriber.complete();
+            });
+        }
+
         return this.http.post<AuthResponse>(`${API_BASE}/login`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
         );
