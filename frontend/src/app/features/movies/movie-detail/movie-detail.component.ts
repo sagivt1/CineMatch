@@ -1,45 +1,63 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MovieService } from '../../../core/services/movie.service';
 import { Movie } from '../../../core/models/movie.models';
+import { MovieRowComponent } from '../components/movie-row/movie-row.component';
 
 @Component({
     selector: 'app-movie-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, MovieRowComponent],
     templateUrl: './movie-detail.component.html',
     styleUrls: ['./movie-detail.component.css']
 })
-export class MovieDetailComponent implements OnInit {
+export class MovieDetailComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly movieService = inject(MovieService);
 
+    // Signals for movie, loading, and error
     readonly movie = signal<Movie | null>(null);
     readonly loading = signal<boolean>(true);
     readonly error = signal<string | null>(null);
 
-    ngOnInit(): void {
-        const uuid = this.route.snapshot.paramMap.get('uuid');
-        if (uuid) {
+    // Derived signal: related movies based on primary genre
+    readonly relatedMovies = computed(() => {
+        const current = this.movie();
+        if (!current) return [];
+        const primaryGenre = current.genre[0];
+        return this.movieService.movies()
+            .filter(m => m.id !== current.id && m.genre.includes(primaryGenre))
+            .slice(0, 10);
+    });
+
+    constructor() {
+        // React to route param changes
+        this.route.paramMap.subscribe(params => {
+            const uuid = params.get('uuid');
+            if (!uuid) {
+                this.error.set('Invalid movie ID');
+                this.loading.set(false);
+                return;
+            }
             this.fetchMovie(uuid);
-        } else {
-            this.error.set('Invalid movie ID');
-            this.loading.set(false);
-        }
+        });
     }
 
     private fetchMovie(uuid: string): void {
-        // Try state first
-        const cachedMovie = this.movieService.getMovieFromState(uuid);
-        if (cachedMovie) {
-            this.movie.set(cachedMovie);
+        this.loading.set(true);
+        this.error.set(null);
+
+        // Try cached movie first
+        const cached = this.movieService.getMovieFromState(uuid);
+        if (cached) {
+            this.movie.set(cached);
             this.loading.set(false);
             return;
         }
 
-        // Fallback to API
+        // Fallback: API call
         this.movieService.getMovieByUUID(uuid).subscribe({
             next: (movie: Movie) => {
                 this.movie.set(movie);

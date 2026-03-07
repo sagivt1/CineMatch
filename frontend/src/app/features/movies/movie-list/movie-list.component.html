@@ -1,44 +1,144 @@
-<div class="movie-list-container">
-    <header class="list-header">
-        <h1>Discover Movies</h1>
-    </header>
-
-    <!-- Loading State: Skeleton Loader -->
-    <div *ngIf="loading()" class="movie-grid">
-        <div *ngFor="let item of [1,2,3,4,5,6,7,8]" class="movie-card skeleton">
-            <div class="skeleton-poster"></div>
-            <div class="skeleton-info">
-                <div class="skeleton-title"></div>
-                <div class="skeleton-meta"></div>
-            </div>
+<div class="movies-page">
+    @if (loading()) {
+        <div class="loading-overlay">
+            <div class="loader"></div>
+            <p>Curating your experience...</p>
         </div>
-    </div>
+    }
 
-    <!-- Error State -->
-    <div *ngIf="!loading() && error()" class="error-state">
-        <p class="error-message">{{ error() }}</p>
-        <button class="retry-btn" (click)="retry()">Retry</button>
-    </div>
+    @if (!loading() && error()) {
+        <div class="error-container">
+            <h3>Something went wrong</h3>
+            <p>{{ error() }}</p>
+            <button class="btn-retry" (click)="retry()">Try Again</button>
+        </div>
+    }
 
-    <!-- Empty State -->
-    <div *ngIf="!loading() && !error() && movies().length === 0" class="empty-state">
-        <h2>No movies found. Add one!</h2>
-        <p>It looks like our collection is empty. Start your cinematic journey today!</p>
-        <button class="add-movie-btn">Add Movie</button>
-    </div>
+    @if (!loading() && !error() && movies().length > 0) {
+        <section class="hero-section">
+            <img
+                class="hero-image"
+                [class.is-fading]="isHeroFading()"
+                [src]="heroMovie()?.backdropUrl || heroMovie()?.posterUrl"
+                [alt]="heroMovie()?.title || 'Featured movie'"
+            />
+            <div class="hero-gradient"></div>
 
-    <!-- Movie Grid -->
-    <div *ngIf="!loading() && !error() && movies().length > 0" class="movie-grid" role="list">
-        <div *ngFor="let movie of movies()" class="movie-card" [routerLink]="['/movies', movie.id]" role="listitem"
-            tabindex="0">
-            <img [src]="movie.posterUrl" [alt]="movie.title + ' Poster'" class="movie-poster" loading="lazy">
-            <div class="movie-info">
-                <h3 class="movie-title">{{ movie.title }}</h3>
-                <div class="movie-meta">
-                    <span class="movie-year">{{ movie.releaseDate | date:'yyyy' }}</span>
-                    <span class="movie-rating">⭐ {{ movie.rating }}</span>
+            <div class="hero-content" [class.is-fading]="isHeroFading()">
+                <div class="hero-meta-row">
+                    <span class="badge">Trending</span>
+                    <div class="ai-match">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        <span>98% AI Match</span>
+                    </div>
+                </div>
+
+                <h1>{{ heroMovie()?.title }}</h1>
+                <p>{{ heroMovie()?.description }}</p>
+
+                <div class="hero-actions">
+                    <a [routerLink]="['/movies', heroMovie()?.id]" class="btn-primary">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                        Watch Now
+                    </a>
+                    <a [routerLink]="['/movies', heroMovie()?.id]" class="btn-secondary">
+                        <span class="material-symbols-outlined">info</span>
+                        View Details
+                    </a>
                 </div>
             </div>
+        </section>
+
+        <div class="content-stack">
+            <section>
+                <div class="section-head">
+                    <div class="section-title-wrap">
+                        <h3>AI Recommendations for You</h3>
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                    </div>
+                    <a routerLink="/movies" class="section-link">See all</a>
+                </div>
+
+                <div class="scroll-row no-scrollbar">
+                    @for (movie of recommendedMovies(); track movie.id) {
+                        <a [routerLink]="['/movies', movie.id]" class="poster-card">
+                            <div class="poster-wrap">
+                                <img [src]="movie.posterUrl" [alt]="movie.title" />
+                                <div class="match-pill">{{ 80 + ($index % 20) }}%</div>
+                            </div>
+                            <h4>{{ movie.title }}</h4>
+                            <p>{{ getGenres(movie) }} • {{ getYear(movie) }}</p>
+                        </a>
+                    }
+                </div>
+            </section>
+
+            <section>
+                <div class="section-head">
+                    <h3>Top Matches for Your Taste</h3>
+                    <a routerLink="/movies" class="section-link">See all</a>
+                </div>
+
+                <div class="match-grid">
+                    @for (movie of topMatches(); track movie.id) {
+                        <a [routerLink]="['/movies', movie.id]" class="match-card">
+                            <img [src]="movie.posterUrl" [alt]="movie.title" />
+                            <div class="match-content">
+                                <div class="match-top">
+                                    <span>Because you liked {{ movie.director }}</span>
+                                    <strong>{{ 88 + ($index % 10) }}% Match</strong>
+                                </div>
+                                <h4>{{ movie.title }}</h4>
+                                <p>{{ movie.description }}</p>
+                                <div class="match-actions">
+                                    <span class="watch-chip">Watch</span>
+                                    <span class="material-symbols-outlined">add</span>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </section>
+
+            <section>
+                <div class="section-head">
+                    <h3>Continue Watching</h3>
+                </div>
+
+                <div class="continue-row no-scrollbar">
+                    @for (movie of continueWatching(); track movie.id) {
+                        <a [routerLink]="['/movies', movie.id]" class="continue-card">
+                            <div class="continue-thumb">
+                                <img [src]="movie.backdropUrl || movie.posterUrl" [alt]="movie.title" />
+                                <div class="progress">
+                                    <div [style.width.%]="getProgress($index)"></div>
+                                </div>
+                            </div>
+                            <h4>{{ movie.title }}</h4>
+                            <p>{{ getProgress($index) }}% completed</p>
+                        </a>
+                    }
+                </div>
+            </section>
+
+            <section class="ai-cta">
+                <div class="cta-content">
+                    <span class="material-symbols-outlined">psychology</span>
+                    <h2>Can't decide what to watch?</h2>
+                    <p>Our AI assistant understands your mood. Describe what you are feeling, and we will find the perfect match.</p>
+                    <div class="cta-actions">
+                        <button type="button" class="cta-primary">Try AI Search</button>
+                        <button type="button" class="cta-outline">How it works</button>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
+    }
+
+    @if (!loading() && !error() && movies().length === 0) {
+        <div class="empty-state">
+            <h2>No movies found</h2>
+            <p>Our collection is currently undergoing maintenance. Check back soon!</p>
+        </div>
+    }
 </div>

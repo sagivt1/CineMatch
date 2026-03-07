@@ -67,7 +67,7 @@ Thumbs.db
 # VS Code / JetBrains
 .idea/
 .vscode/*
-*/.vscode/*
+**/.vscode/
 *.swp
 *.swo
 
@@ -84,3 +84,4 @@ Thumbs.db
 /agents
 WORK_RULES.md
 ROADMAP.md
+design.md

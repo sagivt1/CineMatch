@@ -1,0 +1,50 @@
+<footer class="footer">
+    <div class="container footer-grid">
+        <section class="footer-brand-col">
+            <div class="brand-row">
+                <span class="brand-icon-wrap">
+                    <span class="material-symbols-outlined">movie_filter</span>
+                </span>
+                <span class="brand-text">CineMatch</span>
+            </div>
+            <p class="footer-copy">
+                The next generation of movie discovery powered by artificial intelligence.
+            </p>
+        </section>
+
+        <section>
+            <h6>Platform</h6>
+            <a routerLink="/movies">Movies</a>
+            <a href="#">TV Shows</a>
+            <a href="#">Documentaries</a>
+            <a href="#">Live Events</a>
+        </section>
+
+        <section>
+            <h6>Company</h6>
+            <a href="#">About AI</a>
+            <a href="#">Careers</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </section>
+
+        <section class="newsletter-col">
+            <h6>Newsletter</h6>
+            <p class="newsletter-copy">Get AI-curated weekend watchlists.</p>
+            <form class="newsletter-form" (submit)="$event.preventDefault()">
+                <input type="email" placeholder="Email" aria-label="Email" />
+                <button type="submit">Join</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="container footer-bottom">
+        <p>&copy; {{ currentYear }} CineMatch AI Inc. All rights reserved.</p>
+        <div class="social-links">
+            <a href="#">Facebook</a>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+            <a href="#">LinkedIn</a>
+        </div>
+    </div>
+</footer>

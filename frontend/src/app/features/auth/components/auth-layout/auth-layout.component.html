@@ -1,0 +1,22 @@
+<div class="auth-layout-container">
+    <!-- Left/Form Side -->
+    <div class="auth-form-side">
+        <div class="auth-form-wrapper">
+            <ng-content></ng-content>
+        </div>
+    </div>
+
+    <!-- Right/Image Side (Hidden on Mobile) -->
+    <div class="auth-image-side">
+        <img [src]="imageSrc()" [alt]="imageAlt()" class="auth-bg-image" loading="eager">
+        <div class="auth-image-overlay" [style.opacity]="0.5"></div>
+        <div class="auth-quote-container">
+            <blockquote class="auth-quote">
+                <p class="auth-quote-text">
+                    “<app-typewriter [text]="quoteText()" [speed]="60"></app-typewriter>”
+                </p>
+
+            </blockquote>
+        </div>
+    </div>
+</div>

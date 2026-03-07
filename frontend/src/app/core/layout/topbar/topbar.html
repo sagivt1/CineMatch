@@ -1,0 +1,64 @@
+<header class="topbar">
+    <div class="container topbar-content">
+        <div class="topbar-left">
+            <a routerLink="/" class="brand">
+                <span class="material-symbols-outlined brand-icon">movie_filter</span>
+                <span>CineMatch</span>
+            </a>
+
+            <nav class="nav-links">
+                <a
+                    routerLink="/"
+                    class="nav-link"
+                    routerLinkActive="nav-link-active"
+                    [routerLinkActiveOptions]="{ exact: true }"
+                >
+                    <span class="material-symbols-outlined nav-icon">home</span>
+                    Home
+                </a>
+                <a
+                    routerLink="/movies"
+                    class="nav-link"
+                    routerLinkActive="nav-link-active"
+                >
+                    <span class="material-symbols-outlined nav-icon">movie</span>
+                    Movies
+                </a>
+            </nav>
+        </div>
+
+        <div class="auth-actions">
+            @if (isAuthenticated()) {
+                <details class="profile-menu">
+                    <summary class="user-profile">
+                        <div class="profile-meta">
+                            <p class="username">{{ user()?.displayName }}</p>
+                            <p class="tier">Premium</p>
+                        </div>
+                        <div class="avatar-wrap">
+                            <img
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYHHw6H_X0LajfI01Jsrusjd5nIGVxk2ONPCdZZWzJuYvOSQbcKp4C3Zj9QUaJaVWROSKSBpJKSjkYN9dG19GbWdhiQBvhzzDSpkuoyyuyAOYz18AhwPT_r09owDMWNsXgznYdlGIIFssKofZwHskRdkPPpQBKrugH_Aws1PSGAHlGQzP23PfZ4OIaeB4cX2cSz9IlLuyOdH8oZA7rjKhr6a3v1dvozuFvA1gL6BZsEliQyHBlQQr3JQvj_AwbgE2FvaM3kRyQYdk"
+                                alt="User avatar"
+                            />
+                        </div>
+                        <span class="material-symbols-outlined profile-caret">expand_more</span>
+                    </summary>
+
+                    <div class="profile-dropdown">
+                        <button type="button" class="dropdown-item">
+                            <span class="material-symbols-outlined">settings</span>
+                            Settings
+                        </button>
+                        <button type="button" class="dropdown-item danger" (click)="onLogout()">
+                            <span class="material-symbols-outlined">logout</span>
+                            Logout
+                        </button>
+                    </div>
+                </details>
+            } @else {
+                <a routerLink="/login" class="nav-link">Sign In</a>
+                <a routerLink="/register" class="btn-primary">Get Started</a>
+            }
+        </div>
+    </div>
+</header>

@@ -9,6 +9,7 @@ export interface Movie {
     director: string;
     cast: string[];
     durationMinutes: number;
+    backdropUrl?: string;
 }
 
 export interface MovieListResponse {

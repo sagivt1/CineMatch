@@ -1,0 +1,253 @@
+.auth-layout-container {
+    display: grid;
+    width: 100%;
+    min-height: 100vh;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .auth-layout-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.auth-form-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-2xl);
+}
+
+.auth-form-wrapper {
+    width: 100%;
+    max-width: 350px;
+}
+
+.auth-image-side {
+    display: none;
+    position: relative;
+    background: linear-gradient(to bottom right, #1a1a1c, #2a2a2e);
+    /* Distinct gradient fallback */
+    overflow: hidden;
+    height: 100%;
+}
+
+.auth-bg-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.auth-bg-image[src] {
+    opacity: 0.3;
+}
+
+@media (min-width: 768px) {
+    .auth-image-side {
+        display: block;
+    }
+}
+
+.auth-image-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 150px;
+    background: linear-gradient(to top, var(--color-bg-base), transparent);
+}
+
+.auth-quote-container {
+    color: var(--color-text-primary);
+    position: relative;
+    z-index: 10;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: var(--spacing-xl);
+    padding-bottom: var(--spacing-2xl);
+}
+
+.auth-quote {
+    text-align: center;
+    color: var(--color-text-primary);
+    max-width: 80%;
+}
+
+.auth-quote-text {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-quote-author {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-secondary);
+    font-style: normal;
+}
+
+/* Common Auth Form Styles */
+:host ::ng-deep .auth-form-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+:host ::ng-deep .auth-form-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+}
+
+:host ::ng-deep .auth-form-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+:host ::ng-deep .auth-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+:host ::ng-deep .auth-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+}
+
+:host ::ng-deep .auth-input {
+    display: flex;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-base);
+    padding: 0 var(--spacing-md);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+:host ::ng-deep .auth-input:focus {
+    outline: none;
+    background-color: var(--color-bg-elevated);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+:host ::ng-deep .auth-button {
+    width: 100%;
+    height: 2.75rem;
+    display: flex !important;
+    /* Force flex */
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700 !important;
+    /* Stronger weight */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: #ffffff !important;
+    /* Force white background */
+    color: #000000 !important;
+    /* Force black text */
+    margin-top: var(--spacing-md);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+:host ::ng-deep .auth-button:hover {
+    background: #f0f0f0;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
+}
+
+:host ::ng-deep .auth-button.outline {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    box-shadow: none;
+}
+
+:host ::ng-deep .auth-button.outline:hover {
+    background: var(--color-bg-elevated);
+    border-color: var(--color-text-secondary);
+}
+
+:host ::ng-deep .auth-pwd-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+:host ::ng-deep .auth-pwd-input {
+    padding-right: 2.5rem;
+}
+
+:host ::ng-deep .auth-pwd-toggle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+:host ::ng-deep .auth-pwd-toggle:hover {
+    color: var(--color-text-primary);
+}
+
+:host ::ng-deep .auth-footer {
+    text-align: center;
+    font-size: 0.875rem;
+    margin-top: var(--spacing-xl);
+}
+
+:host ::ng-deep .auth-link {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+    margin-left: var(--spacing-xs);
+    cursor: pointer;
+}
+
+:host ::ng-deep .auth-divider {
+    position: relative;
+    text-align: center;
+    margin: var(--spacing-xl) 0;
+}
+
+:host ::ng-deep .auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--color-border);
+    z-index: 0;
+}
+
+:host ::ng-deep .auth-divider span {
+    position: relative;
+    z-index: 1;
+    background-color: var(--color-bg-base);
+    padding: 0 var(--spacing-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
