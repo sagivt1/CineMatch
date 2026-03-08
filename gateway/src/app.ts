@@ -1,14 +1,16 @@
 import express from 'express';
-import healthRoutes from './routes/healthRoutes';
-import authRoutes from './routes/authRoutes';
 import { errorHandler } from './middleware/errorHandler';
+import { authRoutes } from "./routes/authRoutes";
+import { movieRoutes } from './routes/movieRoutes';
+import { healthRoutes } from "./routes/healthRoutes";
 
 export const app = express();
 
-app.use('/CineMatch', healthRoutes);
-app.use('/CineMatch/auth', authRoutes);
+app.use(express.json());
 
-// error for non found routes
+app.use('/CineMatch', healthRoutes);
+app.use('/CineMatch/movies', movieRoutes);
+app.use('/CineMatch/auth', authRoutes);
 app.use((_req, res) => {
   res.status(404).json({
     error: {
@@ -18,5 +20,4 @@ app.use((_req, res) => {
     },
   });
 });
-
 app.use(errorHandler);

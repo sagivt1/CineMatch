@@ -1,25 +1,8 @@
-import { Router } from 'express';
+/* auth routing before access */
+import { Router } from "express";
+import { login, register } from "../controllers/authController";
 
-const router = Router();
+export const authRoutes = Router();
 
-router.post('/register', (_req, res) => {
-  res.status(501).json({
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'Register endpoint not implemented yet',
-      details: null,
-    },
-  });
-});
-
-router.post('/login', (_req, res) => {
-  res.status(501).json({
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'Login endpoint not implemented yet',
-      details: null,
-    },
-  });
-});
-
-export default router;
+authRoutes.post("/register", register);
+authRoutes.post("/login", login);

@@ -34,6 +34,7 @@ coverage/
 
 # gateway 
 /gateway/node_modules
+/gateway/prisma
 
 # =========================
 # 3. Python / FastAPI (Core)
@@ -67,7 +68,9 @@ Thumbs.db
 # VS Code / JetBrains
 .idea/
 .vscode/*
-**/.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 *.swp
 *.swo
 
@@ -77,11 +80,4 @@ Thumbs.db
 /postgres-data/
 /rabbitmq-data/
 /garage-data/
-
-# =========================
-# 6. Others
-# =========================
 /agents
-WORK_RULES.md
-ROADMAP.md
-design.md

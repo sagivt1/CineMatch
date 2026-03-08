@@ -5,8 +5,9 @@
 
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "isolatedModules": true,
     "target": "ES2022",
-    "types": ["node"],
+    "types": ["node", "jest"],
 
     "sourceMap": true,
 
@@ -17,6 +18,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["dist", "node_modules", "coverage"]
 }
