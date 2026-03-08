@@ -1,3 +1,4 @@
+/* auth routing before access */
 import { Router } from "express";
 import { login, register } from "../controllers/authController";
 
