@@ -20,9 +20,16 @@ services:
     working_dir: /app
     volumes:
       - ./gateway:/app
+      - /app/node_modules
     ports:
-      - "3000:3000"
-    command: sh -c "echo 'Gateway container ready' && tail -f /dev/null"
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: "postgresql://cinematch_users_admin:cinematch_users_password@users_db:5432/cinemematch_users_db?schema=public"
+      JWT_SECRET: "dev_secret_change_me"
+      JWT_EXPIRES_IN: "1h"
+    command: sh -c "npm ci && npm run dev"
     networks:
       - cinematch-net
     depends_on:
@@ -77,20 +84,22 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres-users-data:/var/lib/postgresql/data
+      - users-postgres-data:/var/lib/postgresql/data
     networks:
       - cinematch-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cinematch_users_admin -d cinematch_users_db"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
 networks:
   cinematch-net:
     driver: bridge
 
 volumes:
-  postgres-movies-data:
-  postgres-users-data:
+  postgres-data:
+  users-postgres-data:
+    
     
