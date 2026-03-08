@@ -80,4 +80,10 @@ Thumbs.db
 /postgres-data/
 /rabbitmq-data/
 /garage-data/
+
+# =========================
+# 6. Docs
+# =========================
 /agents
+/design
+WORK_RULES.md

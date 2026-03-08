@@ -1,18 +1,16 @@
 services:
   frontend:
-    image: node:22-alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: cinematch-frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
     ports:
-      - "4200:4200"
-    command: sh -c "echo 'Frontend container ready' && tail -f /dev/null"
+      - "4200:80"
     networks:
       - cinematch-net
     depends_on:
       - gateway
-      - core
+      - core 
 
   gateway:
     image: node:22-alpine
@@ -99,6 +97,6 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
+  postgres-movies-data:
   users-postgres-data:
     
