@@ -1,0 +1,77 @@
+<div class="focus-rail" (mouseenter)="isHovering.set(true)" (mouseleave)="isHovering.set(false)"
+    (wheel)="onWheel($event)" tabindex="0">
+
+    <!-- Background Ambience -->
+    <div class="background-ambience">
+        @for (item of items; track item.id) {
+        <div class="bg-layer" [class.active]="item.id === activeItem().id">
+            <img [src]="item.backdropUrl || item.imageSrc" alt="" class="bg-img">
+            <div class="bg-overlay"></div>
+        </div>
+        }
+    </div>
+
+    <!-- Main Stage -->
+    <div class="stage">
+        <!-- DRAGGABLE RAIL (Note: Drag not natively implemented in basic HTML without library, focusing on click/scroll/key) -->
+        <div class="rail-container">
+            @for (offset of visibleOffsets; track $index) {
+            @if (getItem(offset); as data) {
+            @if (data.isValid) {
+            <div class="movie-card" [class.is-center]="offset === 0" [style.transform]="getTransform(offset)"
+                [ngStyle]="getStyle(offset)" (click)="offset !== 0 ? active.set(data.absIndex) : null">
+
+                <img [src]="data.item.imageSrc" [alt]="data.item.title" class="card-img">
+
+                <div class="lighting-top"></div>
+                <div class="lighting-bottom"></div>
+            </div>
+            }
+            }
+            }
+        </div>
+
+        <!-- Info & Controls -->
+        <div class="controls-container">
+            <div class="info-panel">
+                <div class="info-content-wrapper">
+                    @for (item of items; track item.id) {
+                    <div class="info-content" [class.active]="item.id === activeItem().id">
+                        @if (item.meta || item.rating) {
+                        <div class="meta-container">
+                            @if (item.meta) {
+                            <span class="meta-tag">{{ item.meta }}</span>
+                            }
+                            @if (item.rating) {
+                            <span class="rating-tag">
+                                <lucide-icon name="star" class="icon-star"></lucide-icon>
+                                {{ item.rating }}
+                            </span>
+                            }
+                        </div>
+                        }
+                        <h2 class="item-title">{{ item.title }}</h2>
+                        @if (item.description) {
+                        <p class="item-description">{{ item.description }}</p>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="actions-panel">
+                <div class="navigation-controls">
+                    <button class="nav-btn" (click)="handlePrev()" aria-label="Previous">‹</button>
+                    <span class="index-display">{{ activeIndex() + 1 }} / {{ items.length }}</span>
+                    <button class="nav-btn" (click)="handleNext()" aria-label="Next">›</button>
+                </div>
+
+                @if (activeItem().href) {
+                <a [routerLink]="activeItem().href" class="explore-btn">
+                    Explore Cinematic Details
+                </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

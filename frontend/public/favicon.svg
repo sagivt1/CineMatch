@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CineMatch icon">
+  <circle cx="32" cy="32" r="30" fill="#ef2f3a" />
+  <rect x="14" y="25" width="36" height="24" rx="5" fill="#ffffff" />
+  <rect x="14" y="15" width="36" height="12" rx="4" fill="#ffffff" />
+  <path d="M20 17l6 8M28 17l6 8M36 17l6 8M44 17l4 5" stroke="#ef2f3a" stroke-width="2.8" stroke-linecap="round" />
+  <rect x="20" y="33" width="8" height="8" rx="1.5" fill="#ef2f3a" />
+  <rect x="30" y="33" width="14" height="3" rx="1.5" fill="#ef2f3a" />
+  <rect x="30" y="38" width="10" height="3" rx="1.5" fill="#ef2f3a" />
+</svg>

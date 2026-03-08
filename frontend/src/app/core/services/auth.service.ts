@@ -13,7 +13,7 @@ export class AuthService {
 
     // ── State ──────────────────────────────────────────────────────────────────
     private readonly _token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
-    private readonly _user = signal<AuthUser | null>(null);
+    private readonly _user = signal<AuthUser | null>(this.loadUser());
 
     /** Read-only token for the interceptor */
     readonly token = this._token.asReadonly();
@@ -26,6 +26,23 @@ export class AuthService {
     // ── Auth Actions ───────────────────────────────────────────────────────────
 
     login(req: LoginRequest): Observable<AuthResponse> {
+        // Mock Login for development
+        if (req.email === 'demo@cinematch.ai' && req.password === 'password123') {
+            const mockResponse: AuthResponse = {
+                accessToken: 'mock_token_' + Date.now(),
+                user: {
+                    id: '123e4567-e89b-12d3-a456-426614174000',
+                    email: 'demo@cinematch.ai',
+                    displayName: 'Demo User',
+                },
+            };
+            return new Observable<AuthResponse>((subscriber) => {
+                this.handleAuthResponse(mockResponse);
+                subscriber.next(mockResponse);
+                subscriber.complete();
+            });
+        }
+
         return this.http.post<AuthResponse>(`${API_BASE}/login`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
         );
@@ -41,6 +58,16 @@ export class AuthService {
         this._token.set(null);
         this._user.set(null);
         localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem('cm_user');
+    }
+
+    private loadUser(): AuthUser | null {
+        try {
+            const raw = localStorage.getItem('cm_user');
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
     }
 
     // ── Private Helpers ────────────────────────────────────────────────────────
@@ -54,6 +81,8 @@ export class AuthService {
         };
         this._token.set(res.accessToken);
         this._user.set(user);
+
         localStorage.setItem(TOKEN_KEY, res.accessToken);
+        localStorage.setItem('cm_user', JSON.stringify(user));
     }
 }

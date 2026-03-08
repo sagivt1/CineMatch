@@ -1,74 +1,76 @@
-<section class="auth-page" aria-label="Register">
-    <div class="auth-card">
-        <div class="auth-brand">
-            <span class="brand-icon">🎬</span>
-            <h1 class="brand-name">CineMatch</h1>
-            <p class="brand-tagline">Join the community</p>
-        </div>
-
-        <h2 class="auth-title">Create account</h2>
-
-        @if (errorMessage()) {
-        <div class="error-banner" role="alert">
-            {{ errorMessage() }}
-        </div>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-            <div class="field">
-                <label class="field-label" for="reg-display-name">Display name</label>
-                <input id="reg-display-name" class="field-input" type="text" formControlName="displayName"
-                    placeholder="Your name" autocomplete="name"
-                    [class.invalid]="form.controls.displayName.invalid && form.controls.displayName.touched" />
-                @if (form.controls.displayName.invalid && form.controls.displayName.touched) {
-                <span class="field-error">Display name must be at least 2 characters.</span>
-                }
-            </div>
-
-            <div class="field">
-                <label class="field-label" for="reg-email">Email</label>
-                <input id="reg-email" class="field-input" type="email" formControlName="email"
-                    placeholder="you@example.com" autocomplete="email"
-                    [class.invalid]="form.controls.email.invalid && form.controls.email.touched" />
-                @if (form.controls.email.invalid && form.controls.email.touched) {
-                <span class="field-error">Please enter a valid email address.</span>
-                }
-            </div>
-
-            <div class="field">
-                <label class="field-label" for="reg-password">Password</label>
-                <input id="reg-password" class="field-input" type="password" formControlName="password"
-                    placeholder="••••••••" autocomplete="new-password"
-                    [class.invalid]="form.controls.password.invalid && form.controls.password.touched" />
-                @if (form.controls.password.invalid && form.controls.password.touched) {
-                <span class="field-error">Password must be at least 6 characters.</span>
-                }
-            </div>
-
-            <div class="field">
-                <label class="field-label" for="reg-confirm-password">Confirm password</label>
-                <input id="reg-confirm-password" class="field-input" type="password" formControlName="confirmPassword"
-                    placeholder="••••••••" autocomplete="new-password"
-                    [class.invalid]="form.errors?.['passwordMismatch'] && form.controls.confirmPassword.touched" />
-                @if (form.errors?.['passwordMismatch'] && form.controls.confirmPassword.touched) {
-                <span class="field-error">Passwords do not match.</span>
-                }
-            </div>
-
-            <button id="register-submit" class="btn-primary" type="submit" [disabled]="isLoading()"
-                aria-busy="{{ isLoading() }}">
-                @if (isLoading()) {
-                <span class="spinner" aria-hidden="true"></span>
-                Creating account…
-                } @else {
-                Create account
-                }
-            </button>
-        </form>
-
-        <p class="auth-switch">
-            Already have an account?
-            <a routerLink="/login" id="go-to-login">Sign in</a>
-        </p>
+<app-auth-layout [isSignIn]="false">
+    <div class="auth-form-header">
+        <h1 class="auth-form-title">Create an account</h1>
+        <p class="auth-form-subtitle">Enter your details below to sign up</p>
     </div>
-</section>
+
+    @if (errorMessage()) {
+    <div class="error-banner" role="alert"
+        style="margin-bottom: var(--spacing-md); color: #ff4444; font-size: 0.875rem; text-align: center;">
+        {{ errorMessage() }}
+    </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+        <div class="auth-form-group">
+            <label class="auth-label" for="register-name">Full Name</label>
+            <input id="register-name" class="auth-input" type="text" formControlName="displayName"
+                placeholder="John Doe" autocomplete="name" />
+        </div>
+
+        <div class="auth-form-group">
+            <label class="auth-label" for="register-email">Email</label>
+            <input id="register-email" class="auth-input" type="email" formControlName="email"
+                placeholder="m@example.com" autocomplete="email" />
+        </div>
+
+        <div class="auth-form-group">
+            <label class="auth-label" for="register-password">Password</label>
+            <div class="auth-pwd-wrapper">
+                <input id="register-password" class="auth-input auth-pwd-input"
+                    [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="Password"
+                    autocomplete="new-password" />
+                <button type="button" class="auth-pwd-toggle" (click)="togglePassword()"
+                    aria-label="Toggle password visibility">
+                    <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
+                </button>
+            </div>
+        </div>
+
+        <div class="auth-form-group">
+            <label class="auth-label" for="confirm-password">Confirm Password</label>
+            <div class="auth-pwd-wrapper">
+                <input id="confirm-password" class="auth-input auth-pwd-input"
+                    [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword"
+                    placeholder="Confirm Password" autocomplete="new-password" />
+                <button type="button" class="auth-pwd-toggle" (click)="toggleConfirmPassword()"
+                    aria-label="Toggle password visibility">
+                    <lucide-icon [name]="showConfirmPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
+                </button>
+            </div>
+        </div>
+
+        <button id="register-submit" class="auth-button" type="submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+            Creating account…
+            } @else {
+            Sign Up
+            }
+        </button>
+
+        <div class="auth-footer">
+            Already have an account?
+            <a routerLink="/login" class="auth-link">Sign in</a>
+        </div>
+
+        <div class="auth-divider">
+            <span>Or continue with</span>
+        </div>
+
+        <button type="button" class="auth-button outline" (click)="onSubmit()">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"
+                style="height: 1rem; margin-right: 0.5rem;" />
+            Continue with Google
+        </button>
+    </form>
+</app-auth-layout>

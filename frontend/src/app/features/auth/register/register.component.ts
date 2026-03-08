@@ -8,7 +8,9 @@ import {
     Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LucideAngularModule, LucideIconProvider, LUCIDE_ICONS, Eye, EyeOff } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuthLayoutComponent } from '../components/auth-layout/auth-layout.component';
 import type { RegisterRequest } from '../../../core/models/auth.models';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -21,7 +23,8 @@ const passwordMatchValidator: ValidatorFn = (control: AbstractControl): Validati
 @Component({
     selector: 'app-register',
     standalone: true,
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, LucideAngularModule],
+    providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ Eye, EyeOff }) }],
     templateUrl: './register.component.html',
     styleUrl: './register.component.css',
 })
@@ -32,6 +35,8 @@ export class RegisterComponent {
 
     readonly isLoading = signal(false);
     readonly errorMessage = signal<string | null>(null);
+    readonly showPassword = signal(false);
+    readonly showConfirmPassword = signal(false);
 
     readonly form = this.fb.group(
         {
@@ -42,6 +47,14 @@ export class RegisterComponent {
         },
         { validators: passwordMatchValidator },
     );
+
+    togglePassword(): void {
+        this.showPassword.update(v => !v);
+    }
+
+    toggleConfirmPassword(): void {
+        this.showConfirmPassword.update(v => !v);
+    }
 
     onSubmit(): void {
         if (this.form.invalid || this.isLoading()) return;
@@ -54,7 +67,7 @@ export class RegisterComponent {
 
         this.auth.register(req).subscribe({
             next: () => {
-                this.router.navigate(['/dashboard']);
+                this.router.navigate(['/movies']);
             },
             error: (err: { error?: { message?: string } }) => {
                 this.errorMessage.set(err?.error?.message ?? 'Registration failed. Please try again.');

@@ -1,0 +1,148 @@
+<section class="home-page">
+    <section class="hero-section" id="discover">
+        <div class="hero-bg">
+            <div class="hero-overlay"></div>
+            <img alt="Cinematic theater background"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMBtSFNcT1E3h28ntxJYzrdQ8jbA-Bz0Yjknpey9kdD_ktfN6vYxZyfxx5-yHI2XlF250FPAMOfvcV4uHjBaA3pF554nszj19JgRBQ5DqdZhGwF63pjx4nWXC7Oki6Uoo693UHXaon5qtX4CyG4wxe30jLRCxkA7G5UHAPd3mt23_sTvE6httDtx867F1DnHW4VZLikFEllMXIMTdEszzoFEvVsJvBYZ_3K213sEC9LhZjswMsHvbI0sDyDOMkpcQ0vXDCF0nwYcM" />
+        </div>
+
+        <div class="hero-content container-wide" appScrollReveal [revealDelay]="80">
+            <h1 class="hero-title">
+                Find Your Next
+                <span class="accent-text">Favorite Film</span>
+                with AI.
+            </h1>
+            <p class="hero-subtitle">
+                Experience cinema tailored to your soul. Our neural engine matches your unique taste across 100 years
+                of film history.
+            </p>
+            <div class="cta-row">
+                <a routerLink="/register" class="cta cta-primary">Start Free Trial</a>
+                <a routerLink="/movies" class="cta cta-glass">View Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- <section class="section trending" id="collections">
+        <div class="section-head container-wide">
+            <h2>Trending Now</h2>
+            <a routerLink="/movies">View All</a>
+        </div>
+        <div class="poster-row">
+            @for (movie of trendingMovies(); track movie.id) {
+            <a [routerLink]="['/movies', movie.id]" class="poster">
+                <img [src]="movie.posterUrl" [alt]="movie.title" />
+            </a>
+            }
+        </div>
+    </section>-->
+
+    <section class="section container-wide">
+        <div class="section-intro" appScrollReveal>
+            <div>
+                <p class="eyebrow">The Experience</p>
+                <h3>Personalized<br />Recommendations</h3>
+            </div>
+            <p class="muted">Our AI understands your mood, preferred pacing, and favorite directors to suggest
+                what you
+                will love next.</p>
+        </div>
+        <div class="feature-grid">
+            <article class="glass-card feature-card" appScrollReveal [revealDelay]="80">
+                <span class="material-symbols-outlined">psychology</span>
+                <h4>Mood Analysis</h4>
+                <p>Our engine scans your watch history to detect emotional resonance patterns and match films to your
+                    current state.</p>
+                <div class="feature-media">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrJ2D-RHN_ak6bIQYbsJjStMf99kKgdD1GEvZK-xrdJuvOibL35Qc41kXuNnKE-6ogfDShav2mpH_zgowe82eyIUBKQqk4tkWdayy4clUYkcTH8jUWQnW4M203h5e-sDCajaTWspod_oDo8MscyvUITKBoT0_x-f8VjC5JftdAPZ-57zMtY89gOlf7P4Pn8HpXSw9X0MVAReD5TqZRXgjvx20ETE1F9brPI57RyHWKcpRLc8DazD2LIT9VjR9BfHnV1DF6rcFHf6E"
+                        alt="Abstract mood artwork" />
+                </div>
+            </article>
+            <article class="glass-card feature-card" appScrollReveal [revealDelay]="160">
+                <span class="material-symbols-outlined">movie_edit</span>
+                <h4>Director DNA</h4>
+                <p>We analyze visual styles, pacing, and framing techniques you gravitate toward across decades of
+                    cinema.</p>
+                <div class="feature-media">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5-JgjKenQbD8pX6i7gRv2fOR9kL5sp5Ghqgyov4jr33kmuYOc6tlMU7MoN_7beGvFQ4Y2F2XtkGXiOq2t9BqMhwk8jslOmGf09kQQSDyocslw2jwA9P8RUlxti8CAXQqjJMYPYBQ3I1Hu1WofaqtU1xWCs-heft8cgWmT8uUcIpdnqO28f6Ye-e17PAY0gfyVkwf-fGXcERKS8Sn1AwU-qrtFu7jj9XNANZcwABpLCq5OdFk81knpzUinl2ZU7jGGMCLpmowGOYg"
+                        alt="Cinema camera setup" />
+                </div>
+            </article>
+            <article class="glass-card feature-card" appScrollReveal [revealDelay]="240">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                <h4>Genre Blending</h4>
+                <p>Discover hidden gems across genres that should not work on paper, but feel exactly right for you.</p>
+                <div class="feature-media">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZKxeSIYteojsKWQSM8mVgU3FcXMm8w8iAmaKowtzD_6jkYtvacy3e6XknBucfV6NGohZWAzmI-a0SzbH1lO5WExRGVfM-zv-fL3hfUmE9wpHAUtTN5B3dquB-cIq7yoYFs-X7QhUH9X02DNjVYIGIm90zamk6oqSRUf-sB09YnH3-ARfA6qATY5i-rYC-MfHQan9WW1GJvyUSZUk11G-VQzR22o1c1uXBjg2-EkwAySGwXeAMMWhvRNQfnB7eipnn9RLY3vQtOvI"
+                        alt="Sci-fi silhouette scene" />
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="section process" id="ai-lab">
+        <div class="container-wide">
+            <div class="center-head" appScrollReveal>
+                <p class="eyebrow">The Process</p>
+                <h3>How CineMatch Works</h3>
+            </div>
+            <div class="process-grid">
+                <article appScrollReveal [revealDelay]="80">
+                    <div class="process-icon">
+                        <span class="material-symbols-outlined">scan</span>
+                    </div>
+                    <h4>1. Scan</h4>
+                    <p>Analyze your viewing habits, favorite directors, and visual preferences.</p>
+                </article>
+                <article appScrollReveal [revealDelay]="160">
+                    <div class="process-icon">
+                        <span class="material-symbols-outlined">analytics</span>
+                    </div>
+                    <h4>2. Analyze</h4>
+                    <p>Neural models map the emotional and visual DNA of over 500k films.</p>
+                </article>
+                <article appScrollReveal [revealDelay]="240">
+                    <div class="process-icon">
+                        <span class="material-symbols-outlined">match_word</span>
+                    </div>
+                    <h4>3. Match</h4>
+                    <p>Receive a feed of titles tuned to your cinematic taste and current mood.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section support-section">
+        <div class="container-wide support-wrap">
+            <div class="center-head" appScrollReveal>
+                <p class="eyebrow">Support</p>
+                <h3>Got Questions?</h3>
+            </div>
+            <div class="support-list">
+                <article class="support-item" appScrollReveal [revealDelay]="80">
+                    <h5>How accurate are the AI matches?</h5>
+                    <span class="material-symbols-outlined">add</span>
+                </article>
+                <article class="support-item" appScrollReveal [revealDelay]="140">
+                    <h5>Can I import my Watchlist from Letterboxd?</h5>
+                    <span class="material-symbols-outlined">add</span>
+                </article>
+                <article class="support-item" appScrollReveal [revealDelay]="200">
+                    <h5>Does it work with international cinema?</h5>
+                    <span class="material-symbols-outlined">add</span>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container-wide">
+        <div class="cta-panel" appScrollReveal>
+            <h3>Ready to find your <span>perfect match?</span></h3>
+            <p>Join 50k+ cinephiles today and transform the way you experience movies. Start your 7-day free trial.</p>
+            <div class="cta-row">
+                <a routerLink="/register" class="cta cta-primary">Join Now</a>
+                <a routerLink="/movies" class="cta cta-glass">Learn More</a>
+            </div>
+        </div>
+    </section>
+</section>

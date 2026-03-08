@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>CineMatch - AI Movie Discovery</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea2a33",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#211111",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(0deg, #211111 0%, rgba(33, 17, 17, 0.8) 20%, rgba(33, 17, 17, 0) 50%);
+        }
+
+        .movie-card-overlay {
+            background: linear-gradient(0deg, rgba(33, 17, 17, 0.9) 0%, rgba(33, 17, 17, 0) 40%);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 selection:bg-primary selection:text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto relative flex flex-col">
+            <!-- Top Navigation Bar -->
+            <header
+                class="sticky top-0 z-50 flex items-center justify-between px-8 py-3 bg-background-light/90 dark:bg-background-dark/95 backdrop-blur-xl border-b border-slate-200 dark:border-primary/20">
+                <div class="flex items-center gap-8">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <div class="bg-primary p-1 rounded-lg text-white">
+                            <span class="material-symbols-outlined fill-1 text-xl">movie_filter</span>
+                        </div>
+                        <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">CineMatch
+                        </h2>
+                    </div>
+                    <!-- Primary Nav Links -->
+                    <nav class="hidden xl:flex items-center gap-1">
+                        <a class="px-4 py-2 text-primary bg-primary/10 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg">home</span>Home</a>
+                        <a class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg">movie</span>Movies</a>
+                        <a class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg">tv</span>TV Shows</a>
+                        <a class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg">bookmark</span>My List</a>
+                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+                        <a class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg text-primary">auto_awesome</span>AI
+                            Search</a>
+                        <a class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                            href="#"><span class="material-symbols-outlined text-lg">psychology</span>Preferences</a>
+                    </nav>
+                </div>
+                <!-- Right Side: Search and User -->
+                <div class="flex items-center gap-6 flex-1 justify-end">
+                    <div class="relative w-full max-w-xs group">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-lg">search</span>
+                        <input
+                            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-primary/10 border border-transparent focus:border-primary/30 rounded-full focus:ring-0 text-xs placeholder:text-slate-500"
+                            placeholder="Ask AI or search..." type="text" />
+                    </div>
+                    <div class="flex items-center gap-4 border-l border-slate-200 dark:border-slate-800 pl-6">
+                        <button class="relative p-1.5 text-slate-500 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span
+                                class="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full ring-2 ring-background-dark"></span>
+                        </button>
+                        <!-- User Profile -->
+                        <div class="flex items-center gap-3 cursor-pointer group">
+                            <div class="flex flex-col items-end hidden sm:flex">
+                                <p class="text-xs font-bold">Alex Rivera</p>
+                                <p class="text-[10px] text-primary font-semibold uppercase tracking-wider">Premium</p>
+                            </div>
+                            <div
+                                class="h-9 w-9 rounded-full bg-primary/20 border border-primary/30 overflow-hidden ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+                                <img class="h-full w-full object-cover" data-alt="User profile avatar smiling"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYHHw6H_X0LajfI01Jsrusjd5nIGVxk2ONPCdZZWzJuYvOSQbcKp4C3Zj9QUaJaVWROSKSBpJKSjkYN9dG19GbWdhiQBvhzzDSpkuoyyuyAOYz18AhwPT_r09owDMWNsXgznYdlGIIFssKofZwHskRdkPPpQBKrugH_Aws1PSGAHlGQzP23PfZ4OIaeB4cX2cSz9IlLuyOdH8oZA7rjKhr6a3v1dvozuFvA1gL6BZsEliQyHBlQQr3JQvj_AwbgE2FvaM3kRyQYdk" />
+                            </div>
+                            <span
+                                class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors text-lg">settings</span>
+                        </div>
+                        <!-- Mobile Menu -->
+                        <button
+                            class="xl:hidden flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">
+                            <span class="material-symbols-outlined">menu</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- Hero Section -->
+            <section class="relative h-[70vh] w-full flex-shrink-0">
+                <div class="absolute inset-0">
+                    <img class="h-full w-full object-cover" data-alt="Cinematic wide shot of epic sci-fi landscape"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmG09JWN1Ni6v8V5KCuyJ-Ut7Ut218K0HnNj8R23hjf0h_FneVyY5qcSKK_gqOBl26HCck64EvIYunsJELmRhfpa-Ue3Q3AVOayhHsgobN5HbVSoX5JUiyERTFj5FRd8DPh5cpjPiVGN-RiC7JHR9g9k9zyVXDZqEbbvHZWJLGTiOlbSozVS5e3llACglMu_CqdBUEz3Ljmj9MpQ4SrJxw42K-Ai7TrhjmIce3lwANqMacSm1bNhAjPLnqARlq9msZm6DLBTO-bQM" />
+                    <div class="absolute inset-0 hero-gradient"></div>
+                </div>
+                <div class="relative h-full flex flex-col justify-end px-12 pb-20 max-w-3xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span
+                            class="px-3 py-1 bg-primary text-white text-xs font-bold rounded-full uppercase tracking-widest">Trending</span>
+                        <div class="flex items-center gap-1 text-primary">
+                            <span class="material-symbols-outlined text-sm fill-1">auto_awesome</span>
+                            <span class="text-sm font-bold">98% AI Match</span>
+                        </div>
+                    </div>
+                    <h1 class="text-6xl font-black text-white mb-4 leading-tight">INTERSTELLAR REBORN</h1>
+                    <p class="text-slate-300 text-lg mb-8 line-clamp-3">In a future where humanity has colonized the
+                        outer rim, a lonely technician discovers a signal from a lost generation ship that could change
+                        the fate of the solar system forever.</p>
+                    <div class="flex items-center gap-4">
+                        <button
+                            class="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold flex items-center gap-2 transition-transform active:scale-95">
+                            <span class="material-symbols-outlined fill-1">play_arrow</span>
+                            Watch Now
+                        </button>
+                        <button
+                            class="px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 rounded-xl font-bold flex items-center gap-2 transition-colors">
+                            <span class="material-symbols-outlined">info</span>
+                            View Details
+                        </button>
+                        <button
+                            class="h-12 w-12 flex items-center justify-center rounded-xl border border-white/20 text-white hover:bg-white/10 transition-colors">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- Content Rows -->
+            <div class="px-12 -mt-10 pb-20 relative z-10 space-y-12">
+                <!-- Category 1: AI Recommendations -->
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-2xl font-bold">AI Recommendations for You</h3>
+                            <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                        </div>
+                        <a class="text-primary font-semibold text-sm hover:underline" href="#">See all</a>
+                    </div>
+                    <div class="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-2 px-2">
+                        <!-- Card 1 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover"
+                                    data-alt="Vibrant movie poster for an action film"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-UGSslbzrrI6GnkiRJutIkpMVHSAMTblNDdRWxu2OPFDn4z8ilZtDrtLP9H-k6NjRaSGGgz-WhxPuiA0crcNc7w0zXRsGPDNsQk4MA7pRz42MUe9h7K4hAsq0J1m8yTRPil2nAUsniFJuVjn9e3c_yFj8SsMZxP8Gc0a5c91PNP93E-rNly_vEYCSC83ehYzYioBKOmZd2E75vIcKKe_Lm_Odh78-s70P1DtNJsfcyRCnX2-U1XicyiyvPY2vaF7TphQ17LTNpv0" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">99%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">The Kinetic Realm</h4>
+                            <p class="text-xs text-slate-500">Action • Sci-Fi • 2024</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover"
+                                    data-alt="Classic black and white dramatic movie poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVXtlqsGn1Ihzi57KaEm2HzDUXGjS860AktFmd_UbGMMocauvnJUL_a8mdnmMpa7T8NzjCXLj9Di_hIKRD4kE_zqdiz5xlzps2lZNSsXoI0yjbhD3cCs0MMn3QYoD5zo_0BgER2WWQYEd4j1_kZsS6pHUUUZGZIuNpPArUXUopNzmNBXrV5IPzr4Ksmf2GYscd7QVdpvUVounfWemNsw3gqmWpFDbEDfP0NB4f9AHWlCTqV9NQK_XH8Mh29askq2JVcFZtsjz8BMY" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">94%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">Silent Whispers</h4>
+                            <p class="text-xs text-slate-500">Drama • Noir • 2023</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover"
+                                    data-alt="Neon lighting movie poster for mystery film"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCojkMehLB_xwn_CQuD1zjp8KkS-c-lDBfmTQ_uSb9M4h3fXuYOP2Q7nQ-0L3Gik_cHIUflC6cS6XwsJ7x6jTgVdB32N58YlzmIxnqQtkErHmPnFw-HViBJtNcqyJhTX6-09JjjHlZrTsvXqYihV3wTgtfWyien3_bddoA53sgzVB7ET6mNBBpIHL9MNpdNmAZnYd4exsXL6VenQJ46oHB3M8sK9XinOrvFWHQWe82lSkNKN0qee4d2lwd0jY7aP1TTa3u3h_IJo2Y" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">92%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">Cyber Shadow</h4>
+                            <p class="text-xs text-slate-500">Mystery • Tech • 2024</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover"
+                                    data-alt="Space themed science fiction movie poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh26EoqEtvZW9SzSldh_X4-IsOnkfsKTPuCjA0UONAYnHNScHJW96wrgWnTMWMq3ALaxwuDQn0rSUWs2gBlWMAfC0rDJfFdPuyJAEgIYEoDOP0LSQQOohDJPNc8injPuj73_QICkQ6lGb7Hmolm_dK5MMv7K7e-KdDHJSKPocl5QNWO78EKpsil6kl4bwTCbM-vjydQmBHv15FHNb1HRhpQZfHzWbHvFKd-oq-BzRj9ZVbNTm2jyfMaa2iLUC4vaK-F2dZvp9Kebs" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">88%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">Void Horizon</h4>
+                            <p class="text-xs text-slate-500">Adventure • Space • 2024</p>
+                        </div>
+                        <!-- Card 5 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover" data-alt="Forest mystery themed movie poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFju-FTQQKEvpg5LL77xommqlqFkf47rrCZtfNEuS-xQ1GG5qt0C6I742DS52ZUlLl3I_7ShKvhDKzBI0HhpaE0Tiuw9YHnoMW9wukNYJxfNbsdY6t2kTR4YcITqlreENfUkJNxGBeGQJ9vlHo07TtGTA1vPzc_2rktDWVbYmxy3WLw25IxMdWEaXwRlIMiIUl-rgtA_ow7q-N0ZfB5JIP8-YLvKhjFH9oZ0kWPl7xo5BMEKEcKRUMxeLRkE3yPjztAGFZXfNXo_Y" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">85%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">The Green Labyrinth</h4>
+                            <p class="text-xs text-slate-500">Fantasy • Thriller • 2022</p>
+                        </div>
+                        <!-- Card 6 -->
+                        <div class="flex-shrink-0 w-48 group cursor-pointer">
+                            <div
+                                class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                                <img class="h-full w-full object-cover"
+                                    data-alt="Horror movie poster with dark aesthetic"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEa-2L3fiQCHmb2Bl4Y3uF2OlUXIfAdqC4-K8mcqRE38GYVYVurocd5S46BSLrGrFSJI9hsI99LRcJN-INYd0LtO-WamEhP3NoJelV1bIMPx9-8TUnSHZdAaq4v5a72CTf20sQCcR60W3Jcu_1QjlqPn-8_VVdaYRic9LF_QSSpqwVAT2_h6dGy3Lnh1KobjsA_QCAsg4XWuz0_ATIrfOmVnTAKVpfg75bldCluTbnqYvmnqtV-HuXXFk7ST0BDMxcJ_Xuol0Oyas" />
+                                <div
+                                    class="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-primary/50">
+                                    <span class="text-xs font-bold text-primary">82%</span>
+                                </div>
+                                <div
+                                    class="absolute inset-0 movie-card-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                    <button
+                                        class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Play</button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm truncate">Nocturnal</h4>
+                            <p class="text-xs text-slate-500">Horror • Thriller • 2023</p>
+                        </div>
+                    </div>
+                </section>
+                <!-- Category 2: Top Matches -->
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold">Top Matches for Your Taste</h3>
+                        <a class="text-primary font-semibold text-sm hover:underline" href="#">See all</a>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Horizontal Movie Card 1 -->
+                        <div
+                            class="bg-primary/5 border border-primary/10 rounded-2xl overflow-hidden flex group cursor-pointer hover:border-primary/40 transition-colors">
+                            <div class="w-1/3 aspect-[3/4] overflow-hidden">
+                                <img class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    data-alt="Classic cinema scene poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdenvqlSPkWchT0a_UQ9sDQpvdcre0107nAKiOreGraWeGwd9iic3lnCEiXEnvNGAg3w-BNXdoEQUvBodxyV6uvwz5GHMjrYOTqJHdU7s1L27HGwAorEBwWuZ1nqtxUX5UDKuHqPX9-L_U0cocqy1E_FBvBF-Nwt9__9hm1HF2lbrRLLHOl7mNrdownZkq_14wmPJYdOPH8-S00MoQficECzLHCKunQ8JSQUmiHuwZdKGT2ew6GBygJTk5apX06RXzrxyXaajn848" />
+                            </div>
+                            <div class="p-4 flex flex-col justify-between flex-1">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span
+                                            class="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Because
+                                            you liked "Inception"</span>
+                                        <span class="text-xs font-bold text-primary">97% Match</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold mb-1">Mirror Protocol</h4>
+                                    <p class="text-xs text-slate-500 line-clamp-2">A mind-bending heist thriller set
+                                        inside a shared dream architecture.</p>
+                                </div>
+                                <div class="flex items-center gap-2 mt-4">
+                                    <button
+                                        class="flex-1 py-1.5 bg-primary/20 text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Watch</button>
+                                    <button class="p-1.5 border border-slate-700 rounded-lg"><span
+                                            class="material-symbols-outlined text-sm">add</span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Horizontal Movie Card 2 -->
+                        <div
+                            class="bg-primary/5 border border-primary/10 rounded-2xl overflow-hidden flex group cursor-pointer hover:border-primary/40 transition-colors">
+                            <div class="w-1/3 aspect-[3/4] overflow-hidden">
+                                <img class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    data-alt="Animated movie style poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjcow3ru3SqGoWuurtw9ptn7EyQnDaeRVrjp7kpGG5CrF-8tkpqHF-y5yKsnbCf53NjcqTND_VDAk_FsTdiTwt1yNqRYxFCry0DTsNq8NURm0MuNrzDWv5ekhOvYmJKpDTYXX0af6UuhLoT-v3bbYZPKskuAZyUZK8__LMl555qbxP3MthM05BmLWE4TOwk-WEN7SKuu9YwL3SQTwmfcyyl26UWQ3JC3-fcZYQv4Z6U5URTvyUV8eb83-DMOpDABu2NuixPA2SWPg" />
+                            </div>
+                            <div class="p-4 flex flex-col justify-between flex-1">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span
+                                            class="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Based
+                                            on your Watchlist</span>
+                                        <span class="text-xs font-bold text-primary">93% Match</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold mb-1">Elysian Skies</h4>
+                                    <p class="text-xs text-slate-500 line-clamp-2">A stunning animated journey through a
+                                        world where islands float in the clouds.</p>
+                                </div>
+                                <div class="flex items-center gap-2 mt-4">
+                                    <button
+                                        class="flex-1 py-1.5 bg-primary/20 text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Watch</button>
+                                    <button class="p-1.5 border border-slate-700 rounded-lg"><span
+                                            class="material-symbols-outlined text-sm">add</span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Horizontal Movie Card 3 -->
+                        <div
+                            class="bg-primary/5 border border-primary/10 rounded-2xl overflow-hidden flex group cursor-pointer hover:border-primary/40 transition-colors">
+                            <div class="w-1/3 aspect-[3/4] overflow-hidden">
+                                <img class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    data-alt="Dramatic mountain landscape poster"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIIzNpZJPOKE584DyIEccPuyG2q6TYoUYnsrlBUZmtn--tQnDanSxnZUL-kkWs_m5cmwmKe470PyYUhgcdAgHnrFHsZ1b5fn0upyYmaUf0krrGqdeK8CJw5BvS_DZTy2DLePTu9u9wbVzdgJae2JaysAPfXm2BnKFZqq9sXDXK9hZTAGS_M7MuM88x2icIxGYLFTfx0Tc10UxRaWgqXhaHUQUPyEeuv9RSGdm_dsQgTb4lUoBau7QE4qUfolegJWQge-JX1q3OKXU" />
+                            </div>
+                            <div class="p-4 flex flex-col justify-between flex-1">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span
+                                            class="text-[10px] font-bold uppercase tracking-tighter text-slate-500">New
+                                            Release AI Pick</span>
+                                        <span class="text-xs font-bold text-primary">91% Match</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold mb-1">Peak of Reason</h4>
+                                    <p class="text-xs text-slate-500 line-clamp-2">A gripping survival drama about a
+                                        scientist trapped in the Himalayas.</p>
+                                </div>
+                                <div class="flex items-center gap-2 mt-4">
+                                    <button
+                                        class="flex-1 py-1.5 bg-primary/20 text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Watch</button>
+                                    <button class="p-1.5 border border-slate-700 rounded-lg"><span
+                                            class="material-symbols-outlined text-sm">add</span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- Category 3: Continue Watching -->
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold">Continue Watching</h3>
+                        <div class="flex gap-2">
+                            <button
+                                class="h-10 w-10 flex items-center justify-center rounded-full border border-slate-700 hover:bg-slate-800"><span
+                                    class="material-symbols-outlined">chevron_left</span></button>
+                            <button
+                                class="h-10 w-10 flex items-center justify-center rounded-full border border-slate-700 hover:bg-slate-800"><span
+                                    class="material-symbols-outlined">chevron_right</span></button>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-2 px-2">
+                        <!-- Progress Card 1 -->
+                        <div class="flex-shrink-0 w-72 group cursor-pointer">
+                            <div class="relative aspect-video rounded-xl overflow-hidden mb-3">
+                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    data-alt="Action sequence from a film with high contrast"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAa290tay6xFDln9xxfxWmro9H-NSYyjgb8IgAi86IooYQQquiEDdq41gcOW8rv8FL3nNa-64yCTgRLR9NgmJMjOAOh1-MozMdO9Wf6N6dRwWzkr-QdOqYbMOShX8SgsCdPUdHM9vrS9FP22AoDqDf7yZ3fxkOzpDkmKBRAUKdiBDYiweVraBacbABRyiAYegEutNgkDWkKF4uC4oz5S7Jny06n-yzBGAxza8L5TG-E0jcSUCR7JxnmL9StP5zfuaMglzwJI1IXXL8" />
+                                <div
+                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span
+                                        class="material-symbols-outlined text-5xl text-white fill-1">play_circle</span>
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-700">
+                                    <div class="bg-primary h-full w-[65%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-sm">Velocity X</h4>
+                                    <p class="text-xs text-slate-500">S1:E4 • 42 mins left</p>
+                                </div>
+                                <button class="text-slate-500 hover:text-white"><span
+                                        class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                        <!-- Progress Card 2 -->
+                        <div class="flex-shrink-0 w-72 group cursor-pointer">
+                            <div class="relative aspect-video rounded-xl overflow-hidden mb-3">
+                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    data-alt="Intimate dramatic scene between two actors"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi60dNz-Vsb3VBcI5R_RTbSAJbUcGTVU70G00s-JK3MK8mAMviv29iOh9uhojzIgPqhfyCwRTuyJ8lx3YQOGGidjdgbBrPq7Jyn8r1i4BcXfgsFbxA2Xl-MNdHHZJgjnrhbdYkn25EKEE4LmoDsMJ0K22pH8e4DHB2_SrjenVQhqZvtNgeUVFWXJ7zsGfv8G_fLZt40b2tj5Ua4ZX0oAewZSqKoaO-AerAsRo5TYwOBytUmksvzshwJpDcfaTwnuz3bbud-EutRz0" />
+                                <div
+                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span
+                                        class="material-symbols-outlined text-5xl text-white fill-1">play_circle</span>
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-700">
+                                    <div class="bg-primary h-full w-[20%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-sm">Starlight Sonata</h4>
+                                    <p class="text-xs text-slate-500">Movie • 1h 45m left</p>
+                                </div>
+                                <button class="text-slate-500 hover:text-white"><span
+                                        class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                        <!-- Progress Card 3 -->
+                        <div class="flex-shrink-0 w-72 group cursor-pointer">
+                            <div class="relative aspect-video rounded-xl overflow-hidden mb-3">
+                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    data-alt="Abstract colorful neon scene"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHK1hyUpHX4hZZscTVFAlV90josJKNGyzwS7Jxq-vpxzhMyOwkpXshVNFynpMZiu_HmcvE0HECyYyS9xwgW3KRwXg8c_MRwBir9QWrALBXQLMUYcTmt8VNPVRMd-2ghLfdfouAw1toE-I1bmp4Jyv4MHqQ7gjBsAKk9Kinc5SFV8svN6AvAiv2V9dmMxFpFItg_Vx48EYJuYCdBUWXd8uIYR4WlNzWyX1gq_AedQCIZYYuqWTM_dhWEZ9G-RbQKqAGPoI3vZJXSDc" />
+                                <div
+                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span
+                                        class="material-symbols-outlined text-5xl text-white fill-1">play_circle</span>
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-700">
+                                    <div class="bg-primary h-full w-[90%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-sm">Neon Nights</h4>
+                                    <p class="text-xs text-slate-500">S3:E12 • 5 mins left</p>
+                                </div>
+                                <button class="text-slate-500 hover:text-white"><span
+                                        class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- AI Search Call-to-action -->
+                <section
+                    class="bg-gradient-to-r from-primary to-rose-600 rounded-3xl p-10 flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-primary/30">
+                    <div class="flex-1">
+                        <div class="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-white text-3xl">psychology</span>
+                        </div>
+                        <h2 class="text-4xl font-black text-white mb-4">Can't decide what to watch?</h2>
+                        <p class="text-white/80 text-lg mb-8">Our AI assistant understands your mood. Just describe what
+                            you're feeling, and we'll find the perfect match.</p>
+                        <div class="flex gap-4">
+                            <button
+                                class="px-8 py-4 bg-white text-primary rounded-xl font-bold hover:scale-105 transition-transform shadow-lg">Try
+                                AI Search</button>
+                            <button
+                                class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-bold hover:bg-white/10 transition-colors">How
+                                it works</button>
+                        </div>
+                    </div>
+                    <div
+                        class="w-full md:w-1/3 aspect-square bg-white/10 rounded-2xl flex flex-col p-6 backdrop-blur-md border border-white/20">
+                        <div class="space-y-4">
+                            <div class="bg-white/20 rounded-lg p-3 text-sm text-white italic">"I want something tense
+                                but beautiful, maybe set in the desert..."</div>
+                            <div class="bg-primary rounded-lg p-3 text-sm text-white flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                                Analysis: Sci-Fi, Thriller, High Cinematography
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="w-1/3 aspect-[2/3] bg-white/10 rounded-md border border-white/20"></div>
+                                <div class="w-1/3 aspect-[2/3] bg-white/10 rounded-md border border-white/20"></div>
+                                <div class="w-1/3 aspect-[2/3] bg-white/10 rounded-md border border-white/20"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Footer -->
+            <footer
+                class="px-12 py-12 border-t border-slate-200 dark:border-primary/10 mt-auto bg-slate-50 dark:bg-primary/5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                    <div class="col-span-1 md:col-span-1">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="bg-primary p-1.5 rounded-lg text-white">
+                                <span class="material-symbols-outlined fill-1">movie_filter</span>
+                            </div>
+                            <h2 class="text-xl font-bold tracking-tight">CineMatch</h2>
+                        </div>
+                        <p class="text-slate-500 text-sm leading-relaxed">The next generation of movie discovery powered
+                            by artificial intelligence.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6">Platform</h4>
+                        <ul class="space-y-4 text-sm text-slate-500">
+                            <li><a class="hover:text-primary transition-colors" href="#">Movies</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">TV Shows</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Documentaries</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Live Events</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6">Company</h4>
+                        <ul class="space-y-4 text-sm text-slate-500">
+                            <li><a class="hover:text-primary transition-colors" href="#">About AI</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6">Newsletter</h4>
+                        <p class="text-sm text-slate-500 mb-4">Get AI-curated weekend watchlists.</p>
+                        <div class="flex gap-2">
+                            <input
+                                class="flex-1 px-4 py-2 bg-slate-100 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none"
+                                placeholder="Email" type="email" />
+                            <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold">Join</button>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="mt-12 pt-8 border-t border-slate-200 dark:border-primary/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+                    <p>© 2024 CineMatch AI Inc. All rights reserved.</p>
+                    <div class="flex gap-6">
+                        <a class="hover:text-primary" href="#">Facebook</a>
+                        <a class="hover:text-primary" href="#">Twitter</a>
+                        <a class="hover:text-primary" href="#">Instagram</a>
+                        <a class="hover:text-primary" href="#">LinkedIn</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+</body>
+
+</html>

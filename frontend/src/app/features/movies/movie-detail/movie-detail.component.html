@@ -1,0 +1,84 @@
+<div class="movie-detail-container">
+    <!-- Status States -->
+    @if (loading()) {
+    <div class="loading-state">
+        <div class="loader"></div>
+        <p>Gathering cinematic data...</p>
+    </div>
+    }
+
+    @if (!loading() && error()) {
+    <div class="error-state">
+        <h2>Lost in the void?</h2>
+        <p class="error-message">{{ error() }}</p>
+        <div class="error-actions">
+            <button class="retry-btn" onclick="location.reload()">Refresh Page</button>
+            <button class="back-btn" routerLink="/movies">Back to Catalog</button>
+        </div>
+    </div>
+    }
+
+    <!-- Immersive Content -->
+    @if (!loading() && !error() && movie(); as movieData) {
+    <div class="movie-backdrop">
+        <img [src]="movie()!.backdropUrl || movie()!.posterUrl" alt="" class="backdrop-img">
+        <div class="backdrop-overlay"></div>
+    </div>
+
+    <div class="movie-content">
+        <div class="detail-grid">
+            <div class="poster-column">
+                <img [src]="movieData.posterUrl" [alt]="movieData.title" class="detail-poster">
+            </div>
+
+            <div class="info-column">
+                <button class="back-link" routerLink="/movies">
+                    <span>←</span> Back to Catalog
+                </button>
+
+                <h1 class="title">{{ movieData.title }}</h1>
+
+                <div class="meta">
+                    <span class="rating">⭐ {{ movieData.rating }}</span>
+                    <span class="separator">/</span>
+                    <span class="year">{{ movieData.releaseDate | date:'yyyy' }}</span>
+                    <span class="separator">/</span>
+                    <span class="duration">{{ movieData.durationMinutes }} min</span>
+                </div>
+
+                <div class="genres">
+                    @for (genre of movieData.genre; track genre) {
+                    <span class="genre-tag">{{ genre }}</span>
+                    }
+                </div>
+
+                <p class="description">{{ movieData.description }}</p>
+
+                <div class="credits">
+                    <div class="credit-item">
+                        <span class="label">Director</span>
+                        <span class="value">{{ movieData.director }}</span>
+                    </div>
+                    <div class="credit-item">
+                        <span class="label">Cast</span>
+                        <span class="value">{{ movieData.cast.join(', ') }}</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="play-btn">Play Experience</button>
+                    <button class="watchlist-btn">+ Watchlist</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- "More Like This" Section -->
+        @if (relatedMovies().length > 0) {
+        <div class="related-section">
+            <app-movie-row title="More Like This" [movies]="relatedMovies()">
+            </app-movie-row>
+        </div>
+        }
+    </div>
+    }
+</div>
