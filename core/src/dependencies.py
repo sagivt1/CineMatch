@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import Header, HTTPException, status
 
 
-async def get_user_id(user_id: Annotated[int | None, Header()] = None) -> int:
+async def get_user_id(user_id: Annotated[str | None, Header()] = None) -> str:
     """
     Dependency to retrieve the authenticated user's ID from the request headers.
 

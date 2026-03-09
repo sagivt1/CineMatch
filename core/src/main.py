@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db, init_db
 from models.movie import Movie
-from schemas.movie import MovieCreate, MovieResponse
+from schemas.movie import MovieCreate, MovieResponse, UploadConfirmRequest
 from services.s3.config import get_s3_settings
 from services.s3.s3_service import get_s3_client, init_s3_bucket
 from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Core FastAPI", lifespan=lifespan)
 
 
-@app.get("/health")
+@app.get("/api/health/")
 def health_check():
     """
     A simple health check endpoint.
@@ -53,7 +53,7 @@ def health_check():
     return {"status": "OK"}
 
 
-@app.get("/movies/", response_model=list[MovieResponse])
+@app.get("/api/movies/", response_model=list[MovieResponse])
 async def get_all_movies(db: Session = Depends(get_db)):
     """
     Retrieves a list of all movies from the database.
@@ -67,7 +67,7 @@ async def get_all_movies(db: Session = Depends(get_db)):
     return db.query(Movie).all()
 
 
-@app.get("/movies/{movie_id}", response_model=MovieResponse)
+@app.get("/api/movies/{movie_id}", response_model=MovieResponse)
 async def get_movie_by_id(movie_id: int, db: Session = Depends(get_db)):
     """
     Retrieves a specific movie by its ID.
@@ -88,10 +88,10 @@ async def get_movie_by_id(movie_id: int, db: Session = Depends(get_db)):
     return movie
 
 
-@app.post("/movies/", response_model=MovieResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/movie/", response_model=MovieResponse, status_code=status.HTTP_201_CREATED)
 async def create_movie(
     movie_data: MovieCreate, 
-    user_id: Annotated[int, Depends(get_user_id)],
+    user_id: Annotated[str, Depends(get_user_id)],
     db: Session = Depends(get_db)
 ):
     """
@@ -131,7 +131,7 @@ async def create_movie(
 
     return movie
 
-@app.get("/upload-url")
+@app.get("/api/upload-url")
 def generate_presigned_url(
     filename: str, 
     s3_client = Depends(get_s3_client)
@@ -181,3 +181,51 @@ def generate_presigned_url(
             status_code=500, 
             detail=f"Could not generate upload URL: {str(e)}"
         )
+
+@app.post("/api/upload-confirm", response_model=MovieResponse)
+async def confirm_upload(    
+        payload: UploadConfirmRequest,
+        db: Session = Depends(get_db) 
+): 
+    """
+    Confirms a file upload and updates the movie record.
+
+    This endpoint is called after the frontend successfully uploads a file to S3.
+    It constructs the public URL for the file, updates the movie's poster_url
+    in the database, and publishes an update event.
+
+    Args:
+        payload (UploadConfirmRequest): Contains movie_id and the S3 file_key.
+        db (Session): Database session.
+
+    Returns:
+        Movie: The updated movie object.
+    """
+    movie = db.query(Movie).filter(Movie.id == payload.movie_id).first()
+
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    settings = get_s3_settings()
+
+    # Construct the public URL. 
+    # Note: In a local Docker environment, 's3-storage' is the internal hostname.
+    # We replace it with 'localhost' so the URL is accessible from the host machine/browser.
+    base_url = settings.S3_ENDPOINT_URL.replace("s3-storage", "localhost")
+    public_poster_url = f"{base_url}/{settings.S3_BUCKET_NAME}/{payload.file_key}"
+
+    # Update the movie record
+    movie.poster_url = public_poster_url
+    db.commit()
+    db.refresh(movie)
+
+    event_payload = {
+        "id": movie.id,
+        "poster_url": movie.poster_url,
+        "created_by_user_id": movie.created_by_user_id,
+    }
+
+    # Publish the update event
+    await publish_movie_event(event_action="updated", payload=event_payload)
+
+    return movie

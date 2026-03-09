@@ -36,9 +36,13 @@ class MovieUpdate(BaseModel):
     Schema for updating an existing movie.
     All fields are optional, allowing for partial updates.
     """
+    # Optional new title
     title: str | None = Field(None, min_length=1, max_length=255)
+    # Optional new description
     description: str | None = Field(None, max_length=1000)
+    # Optional new release date
     release_date: date | None = None
+    # Optional new poster URL
     poster_url: str | None = Field(None, max_length=500)
 
 
@@ -48,8 +52,23 @@ class MovieResponse(MovieBase):
     Includes the database ID and the ID of the user who created it.
     """
 
+    # The unique identifier of the movie in the database
     id: int
+    # The ID of the user who created this movie entry
     created_by_user_id: int
 
     # Configuration to enable Pydantic to read data from ORM models
     model_config = ConfigDict(from_attributes=True)
+
+class UploadConfirmRequest(BaseModel):
+    """
+    Schema for the upload confirmation request.
+    
+    This model is used when the frontend confirms that a file has been 
+    successfully uploaded to S3, triggering the backend to update the 
+    movie record.
+    """
+    # The ID of the movie to update
+    movie_id: int
+    # The S3 key (path) of the uploaded file
+    file_key: str
