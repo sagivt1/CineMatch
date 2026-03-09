@@ -47,16 +47,16 @@ def init_s3_bucket():
     try:
         # head_bucket is a cheap call to check if a bucket exists and we have permission to access it.
         client.head_bucket(Bucket=bucket_name)
-        print(f"[S3] Bucket {bucket_name} already exists.")
+        print(f"[S3] Bucket {bucket_name} already exists.", flush=True)
     except ClientError as e:
         # Parse the error code from the exception response.
         error_code = e.response.get('Error', {}).get('Code')
         
         # If the error is 404, the bucket does not exist, so we create it.
         if error_code == "404":
-            print(f"[S3] Bucket {bucket_name} not found. Creating...")
+            print(f"[S3] Bucket {bucket_name} not found. Creating...", flush=True)
             client.create_bucket(Bucket=bucket_name)
-            print(f"[S3] Bucket {bucket_name} created successfully.")
+            print(f"[S3] Bucket {bucket_name} created successfully.", flush=True)
         else:
             # Re-raise or log unexpected errors (e.g., 403 Forbidden).
-            print(f"[S3] Unexpected error checking bucket: {e}")
+            print(f"[S3] Unexpected error checking bucket: {e}", flush=True)

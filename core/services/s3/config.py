@@ -14,7 +14,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Determine the path to the .env file.
 # We navigate up from core/services/s3/config.py to the project root (CineMatch/).
 ENV_FILE_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
-
 class S3Settings(BaseSettings):
     """
     S3 Settings Class.
@@ -30,6 +29,7 @@ class S3Settings(BaseSettings):
     # Configuration for Pydantic Settings
     # env_file: Path to the environment file
     # extra="ignore": Ignore any extra environment variables not defined in this class
+    
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH, env_file_encoding="utf-8", extra="ignore"
     )

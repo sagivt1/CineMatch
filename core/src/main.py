@@ -16,6 +16,7 @@ from models.movie import Movie
 from schemas.movie import MovieCreate, MovieResponse
 from services.s3.config import get_s3_settings
 from services.s3.s3_service import get_s3_client, init_s3_bucket
+from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 
 from .dependencies import get_user_id
 
@@ -27,10 +28,14 @@ async def lifespan(app: FastAPI):
     It prints a message when the application starts and when it shuts down.
     """
     print("[Core] Start FastApi")
+    # Initialize the database (create tables if they don't exist)
     init_db()
+    # Initialize the S3 bucket (create if not exists)
     init_s3_bucket()
+    # Initialize RabbitMQ (connect and declare exchanges)
+    await init_rabbitmq()
     yield
-    print("[Core] Shuting Down FastApi")
+    print("[Core] Shutting Down FastApi")
 
 
 # Initialize the FastAPI application with a title and the lifespan context manager.
@@ -114,6 +119,15 @@ async def create_movie(
     db.add(movie)
     db.commit()
     db.refresh(movie)
+
+    # Prepare the event payload for the message broker
+    event_payload = {
+        "id": movie.id,
+        "created_by_user_id": movie.created_by_user_id,
+    }
+    
+    # Publish the 'movie.created' event to RabbitMQ asynchronously
+    await publish_movie_event("created", event_payload)
 
     return movie
 

@@ -34,12 +34,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
 
+    print(f"[DB] Tables registered in metadata: {list(Base.metadata.tables.keys())}", flush=True)
 
-    print(f"[DB] Tables registered in metadata: {list(Base.metadata.tables.keys())}")
-
-    print("[DB] Creating tables...")
+    print("[DB] Creating tables...", flush=True)
     Base.metadata.create_all(bind=engine)
-    print("[DB] Tables created.")
+    print("[DB] Tables created.", flush=True)
 
 
 def get_db():
