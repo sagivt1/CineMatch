@@ -4,18 +4,20 @@ It defines the FastAPI app instance, lifespan events, and API endpoints for
 managing movies.
 """
 
+import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
-
 from sqlalchemy.orm import Session
 
+from db.db import get_db, init_db
 from models.movie import Movie
 from schemas.movie import MovieCreate, MovieResponse
-from .dependencies import get_user_id
-from db.db import get_db, init_db
+from services.s3.config import get_s3_settings
+from services.s3.s3_service import get_s3_client, init_s3_bucket
 
+from .dependencies import get_user_id
 
 
 @asynccontextmanager
@@ -26,6 +28,7 @@ async def lifespan(app: FastAPI):
     """
     print("[Core] Start FastApi")
     init_db()
+    init_s3_bucket()
     yield
     print("[Core] Shuting Down FastApi")
 
@@ -113,3 +116,54 @@ async def create_movie(
     db.refresh(movie)
 
     return movie
+
+@app.get("/upload-url")
+def generate_presigned_url(
+    filename: str, 
+    s3_client = Depends(get_s3_client)
+):
+    """
+    Generates a presigned URL for uploading a file to S3.
+
+    This endpoint creates a unique filename, constructs the S3 object key,
+    and generates a temporary URL that allows the client to upload a file
+    directly to the S3 bucket.
+
+    Args:
+        filename (str): The original filename (used to extract extension).
+        s3_client: The S3 client injected by dependency.
+
+    Returns:
+        dict: Contains 'upload_url' and 'file_key'.
+    """
+    setting = get_s3_settings()
+    bucket_name = setting.S3_BUCKET_NAME
+    
+    # Generate a unique filename using UUID to prevent overwrites.
+    file_extension = filename.split('.')[-1] if '.' in filename else ''
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    object_name = f"posters/{unique_filename}"
+
+    try:
+        # Generate a presigned URL for the 'put_object' operation.
+        # This allows the frontend to upload directly to S3 without passing through the backend.
+        presigned_url = s3_client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': bucket_name,
+                'Key': object_name,
+                'ContentType': 'image/jpeg'
+            },
+            ExpiresIn=3600
+        )
+
+        return {
+            "upload_url": presigned_url,
+            "file_key": object_name
+        }
+    except Exception as e:
+        # Log the error (in a real app) and return a 500 response.
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Could not generate upload URL: {str(e)}"
+        )

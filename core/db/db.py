@@ -6,7 +6,8 @@ It also provides a dependency function `get_db` for managing database sessions.
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
+
 from models.base import Base
 
 from .config import get_settings
@@ -33,7 +34,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
 
-    import models.movie
 
     print(f"[DB] Tables registered in metadata: {list(Base.metadata.tables.keys())}")
 

@@ -1,9 +1,12 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from fastapi.testclient import TestClient
-from src.main import app
+
 from db.db import get_db
 from src.dependencies import get_user_id
+from src.main import app
+
 
 @pytest.fixture
 def mock_db_session():
