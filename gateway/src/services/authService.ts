@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "../prisma";
+import { env } from "../config/env";
 
 const SALT_ROUNDS = 10;
 
@@ -10,15 +11,40 @@ export class AuthError extends Error {
   }
 }
 
-export async function registerUser(email: string, password: string) {
+type SafeUser = {
+  id: string;
+  email: string;
+  displayName: string;
+};
+
+type AuthResponse = {
+  accessToken: string;
+  user: SafeUser;
+};
+
+function getJwtSignOptions(): SignOptions {
+  return {
+    expiresIn: env.JWT_EXPIRES_IN as NonNullable<SignOptions["expiresIn"]>,
+  };
+}
+
+function signAccessToken(user: SafeUser): string {
+  return jwt.sign({ sub: user.id, email: user.email }, env.JWT_SECRET, getJwtSignOptions());
+}
+
+export async function registerUser(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<AuthResponse> {
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   try {
-    const user = await prisma.user.create({
-      data: { email, passwordHash },
-      select: { id: true, email: true, createdAt: true },
+    const user = await (prisma.user as any).create({
+      data: { email, passwordHash, displayName },
+      select: { id: true, email: true, displayName: true },
     });
-    return user;
+    return { accessToken: signAccessToken(user as SafeUser), user: user as SafeUser };
   } catch (err: any) {
     if (err?.code === "P2002") {
       throw new AuthError("EMAIL_ALREADY_EXISTS");
@@ -27,10 +53,10 @@ export async function registerUser(email: string, password: string) {
   }
 }
 
-export async function loginUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
+  const user = await (prisma.user as any).findUnique({
     where: { email },
-    select: { id: true, email: true, passwordHash: true },
+    select: { id: true, email: true, displayName: true, passwordHash: true },
   });
 
   if (!user) {
@@ -42,12 +68,14 @@ export async function loginUser(email: string, password: string) {
     throw new AuthError("INVALID_CREDENTIALS");
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("Missing JWT_SECRET");
+  const accessToken = jwt.sign(
+    { sub: user.id, email: user.email },
+    env.JWT_SECRET,
+    getJwtSignOptions(),
+  );
 
-  const token = jwt.sign({ sub: user.id, email: user.email }, secret, {
-    expiresIn: "1h",
-  });
-
-  return { token };
+  return {
+    accessToken,
+    user: { id: user.id, email: user.email, displayName: user.displayName },
+  };
 }

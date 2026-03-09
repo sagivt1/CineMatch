@@ -9,24 +9,29 @@ function isValidPassword(password: string) {
   return typeof password === "string" && password.length >= 8 && password.length <= 72;
 }
 
-export async function register(req: Request, res: Response) {
-  const { email, password } = req.body ?? {};
+function isValidDisplayName(displayName: string) {
+  return typeof displayName === "string" && displayName.trim().length >= 2 && displayName.trim().length <= 80;
+}
 
-  if (!isValidEmail(email) || !isValidPassword(password)) {
-    return res.status(400).json({ error: "INVALID_INPUT" });
+export async function register(req: Request, res: Response) {
+  const { email, password, displayName } = req.body ?? {};
+
+  if (!isValidEmail(email) || !isValidPassword(password) || !isValidDisplayName(displayName)) {
+    return res.status(400).json({ error: "INVALID_INPUT", message: "Invalid email, password, or displayName" });
   }
 
   try {
-    const user = await registerUser(email, password);
-    return res.status(201).json({ user });
+    const result = await registerUser(email, password, displayName.trim());
+    return res.status(201).json(result);
   } catch (err: any) {
     if (err instanceof AuthError && err.code === "EMAIL_ALREADY_EXISTS") {
-      return res.status(400).json({ error: "EMAIL_ALREADY_EXISTS" });
+      return res.status(400).json({ error: "EMAIL_ALREADY_EXISTS", message: "Email already exists" });
     }
     console.error("AUTH 500 ERROR:", err);
 
     return res.status(500).json({
-    error: "INTERNAL_SERVER_ERROR"});
+    error: "INTERNAL_SERVER_ERROR",
+    message: "Internal server error"});
   }
 }
 
@@ -34,19 +39,20 @@ export async function login(req: Request, res: Response) {
   const { email, password } = req.body ?? {};
 
   if (!isValidEmail(email) || !isValidPassword(password)) {
-    return res.status(400).json({ error: "INVALID_INPUT" });
+    return res.status(400).json({ error: "INVALID_INPUT", message: "Invalid email or password" });
   }
 
   try {
     const result = await loginUser(email, password);
-    return res.status(200).json(result); // { token }
+    return res.status(200).json(result);
   } catch (err: any) {
     if (err instanceof AuthError && err.code === "INVALID_CREDENTIALS") {
-      return res.status(401).json({ error: "INVALID_CREDENTIALS" });
+      return res.status(401).json({ error: "INVALID_CREDENTIALS", message: "Invalid credentials" });
     }
     console.error("AUTH 500 ERROR:", err);
 
     return res.status(500).json({
-    error: "INTERNAL_SERVER_ERROR"});
+    error: "INTERNAL_SERVER_ERROR",
+    message: "Internal server error"});
   }
 }

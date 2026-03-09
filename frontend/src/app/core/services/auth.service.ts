@@ -1,11 +1,10 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '../models/auth.models';
 
 const TOKEN_KEY = 'cm_access_token';
-const API_BASE = '/api/auth';
+const API_BASE = '/CineMatch/auth';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,30 +24,13 @@ export class AuthService {
 
     // ── Auth Actions ───────────────────────────────────────────────────────────
 
-    login(req: LoginRequest): Observable<AuthResponse> {
-        // Mock Login for development
-        if (req.email === 'demo@cinematch.ai' && req.password === 'password123') {
-            const mockResponse: AuthResponse = {
-                accessToken: 'mock_token_' + Date.now(),
-                user: {
-                    id: '123e4567-e89b-12d3-a456-426614174000',
-                    email: 'demo@cinematch.ai',
-                    displayName: 'Demo User',
-                },
-            };
-            return new Observable<AuthResponse>((subscriber) => {
-                this.handleAuthResponse(mockResponse);
-                subscriber.next(mockResponse);
-                subscriber.complete();
-            });
-        }
-
+    login(req: LoginRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/login`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
         );
     }
 
-    register(req: RegisterRequest): Observable<AuthResponse> {
+    register(req: RegisterRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/register`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
         );
