@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { env } from "prisma/config";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "./generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const connectionString = `postgresql://${env("POSTGRES_USER")}:${env("POSTGRES_PASSWORD")}@${env("POSTGRES_HOST")}:${env("POSTGRES_PORT")}/${env("POSTGRES_DB")}?schema=public`;

@@ -1,0 +1,216 @@
+<div class="settings-page">
+    <section class="settings-hero motion-shell" [class.is-visible]="showHero()">
+        <div class="hero-copy">
+            <span class="eyebrow">Account Center</span>
+            <h1>Settings built for a quick, safe tune-up.</h1>
+            <p>
+                Update how your profile appears, review the email attached to your account, rotate your password, or
+                permanently delete your account after password confirmation.
+            </p>
+
+            <div class="hero-actions">
+                <a routerLink="/movies" class="btn-secondary">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Back to movies
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-summary">
+            <div class="summary-tile">
+                <span class="material-symbols-outlined">person</span>
+                <div>
+                    <p>Display name</p>
+                    <strong>{{ currentUser()?.displayName }}</strong>
+                </div>
+            </div>
+
+            <div class="summary-tile">
+                <span class="material-symbols-outlined">mail</span>
+                <div>
+                    <p>Email</p>
+                    <strong>{{ currentUser()?.email }}</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="settings-grid">
+        <section class="settings-card motion-shell" [class.is-visible]="showProfileCard()">
+            <div class="card-header">
+                <div>
+                    <span class="section-tag">Profile</span>
+                    <h2>Public identity</h2>
+                    <p>Keep your display name current. Your email is shown here for reference only.</p>
+                </div>
+            </div>
+
+            @if (profileFeedback()) {
+                <div class="status-banner" [class.error]="profileFeedback()!.type === 'error'">
+                    {{ profileFeedback()!.message }}
+                </div>
+            }
+
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="settings-form" novalidate>
+                <div class="form-grid">
+                    <label class="field">
+                        <span class="field-label">Display name</span>
+                        <input
+                            class="field-input"
+                            [class.invalid]="profileForm.controls.displayName.invalid && profileForm.controls.displayName.touched"
+                            type="text"
+                            formControlName="displayName"
+                            placeholder="Your public name"
+                            autocomplete="name"
+                        />
+                        @if (profileForm.controls.displayName.invalid && profileForm.controls.displayName.touched) {
+                            <span class="field-error">Display name must be between 2 and 80 characters.</span>
+                        }
+                    </label>
+
+                    <label class="field">
+                        <span class="field-label">Email</span>
+                        <input class="field-input is-readonly" type="email" formControlName="email" readonly />
+                        <span class="field-help">Email changes are not part of this first settings release.</span>
+                    </label>
+                </div>
+
+                <div class="card-actions">
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        [disabled]="isProfileSaving() || profileForm.invalid || !profileForm.dirty"
+                    >
+                        @if (isProfileSaving()) {
+                            Saving...
+                        } @else {
+                            Save profile
+                        }
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="settings-card motion-shell" [class.is-visible]="showPasswordCard()">
+            <div class="card-header">
+                <div>
+                    <span class="section-tag">Security</span>
+                    <h2>Change password</h2>
+                    <p>Confirm your current password before setting a new one.</p>
+                </div>
+            </div>
+
+            @if (passwordFeedback()) {
+                <div class="status-banner" [class.error]="passwordFeedback()!.type === 'error'">
+                    {{ passwordFeedback()!.message }}
+                </div>
+            }
+
+            <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()" class="settings-form" novalidate>
+                <div class="form-grid stacked">
+                    <label class="field">
+                        <span class="field-label">Current password</span>
+                        <input
+                            class="field-input"
+                            [class.invalid]="passwordForm.controls.oldPassword.invalid && passwordForm.controls.oldPassword.touched"
+                            type="password"
+                            formControlName="oldPassword"
+                            autocomplete="current-password"
+                        />
+                    </label>
+
+                    <label class="field">
+                        <span class="field-label">New password</span>
+                        <input
+                            class="field-input"
+                            [class.invalid]="passwordForm.controls.newPassword.invalid && passwordForm.controls.newPassword.touched"
+                            type="password"
+                            formControlName="newPassword"
+                            autocomplete="new-password"
+                        />
+                        <span class="field-help">Use at least 8 characters.</span>
+                    </label>
+
+                    <label class="field">
+                        <span class="field-label">Confirm new password</span>
+                        <input
+                            class="field-input"
+                            [class.invalid]="passwordForm.hasError('passwordMismatch') && passwordForm.controls.confirmPassword.touched"
+                            type="password"
+                            formControlName="confirmPassword"
+                            autocomplete="new-password"
+                        />
+                        @if (passwordForm.hasError('passwordMismatch') && passwordForm.controls.confirmPassword.touched) {
+                            <span class="field-error">Your new passwords must match.</span>
+                        }
+                    </label>
+                </div>
+
+                <div class="card-actions">
+                    <button type="submit" class="btn-primary" [disabled]="isPasswordSaving() || passwordForm.invalid">
+                        @if (isPasswordSaving()) {
+                            Updating...
+                        } @else {
+                            Update password
+                        }
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="settings-card danger-card motion-shell" [class.is-visible]="showDangerCard()">
+            <div class="card-header">
+                <div>
+                    <span class="section-tag danger">Danger zone</span>
+                    <h2>Delete account</h2>
+                    <p>This permanently removes your CineMatch user account. This action cannot be undone.</p>
+                </div>
+            </div>
+
+            @if (deleteFeedback()) {
+                <div class="status-banner error">
+                    {{ deleteFeedback()!.message }}
+                </div>
+            }
+
+            @if (!isDeleteConfirming()) {
+                <div class="danger-shell">
+                    <p class="danger-copy">
+                        We require one extra confirmation step and your current password before we delete the account.
+                    </p>
+
+                    <div class="card-actions">
+                        <button type="button" class="btn-danger" (click)="revealDeleteConfirmation()">
+                            Continue to deletion
+                        </button>
+                    </div>
+                </div>
+            } @else {
+                <form [formGroup]="deleteForm" (ngSubmit)="deleteAccount()" class="settings-form delete-form" novalidate>
+                    <label class="field">
+                        <span class="field-label">Confirm with password</span>
+                        <input
+                            class="field-input"
+                            [class.invalid]="deleteForm.controls.password.invalid && deleteForm.controls.password.touched"
+                            type="password"
+                            formControlName="password"
+                            autocomplete="current-password"
+                        />
+                        <span class="field-help">Enter your current password to permanently delete the account.</span>
+                    </label>
+
+                    <div class="card-actions">
+                        <button type="button" class="btn-secondary" (click)="cancelDeleteConfirmation()">Cancel</button>
+                        <button type="submit" class="btn-danger" [disabled]="isDeleting() || deleteForm.invalid">
+                            @if (isDeleting()) {
+                                Deleting...
+                            } @else {
+                                Delete account
+                            }
+                        </button>
+                    </div>
+                </form>
+            }
+        </section>
+    </div>
+</div>

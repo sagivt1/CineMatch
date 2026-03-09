@@ -1,7 +1,16 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '../models/auth.models';
+import type {
+    AuthResponse,
+    AuthUser,
+    ChangePasswordRequest,
+    DeleteAccountRequest,
+    LoginRequest,
+    RegisterRequest,
+    UpdateProfileRequest,
+    UpdateProfileResponse,
+} from '../models/auth.models';
 
 const TOKEN_KEY = 'cm_access_token';
 const API_BASE = '/CineMatch/auth';
@@ -36,6 +45,22 @@ export class AuthService {
         );
     }
 
+    updateProfile(req: UpdateProfileRequest) {
+        return this.http.patch<UpdateProfileResponse>(`${API_BASE}/me`, req).pipe(
+            tap((res) => this.persistUser(this.toAuthUser(res.user))),
+        );
+    }
+
+    changePassword(req: ChangePasswordRequest) {
+        return this.http.post<void>(`${API_BASE}/change-password`, req);
+    }
+
+    deleteAccount(req: DeleteAccountRequest) {
+        return this.http.delete<void>(`${API_BASE}/me`, { body: req }).pipe(
+            tap(() => this.logout()),
+        );
+    }
+
     logout(): void {
         this._token.set(null);
         this._user.set(null);
@@ -56,15 +81,21 @@ export class AuthService {
 
     /** Adapter: maps raw API response → internal domain model */
     private handleAuthResponse(res: AuthResponse): void {
-        const user: AuthUser = {
-            id: res.user.id,
-            email: res.user.email,
-            displayName: res.user.displayName,
-        };
         this._token.set(res.accessToken);
-        this._user.set(user);
-
         localStorage.setItem(TOKEN_KEY, res.accessToken);
+        this.persistUser(this.toAuthUser(res.user));
+    }
+
+    private persistUser(user: AuthUser): void {
+        this._user.set(user);
         localStorage.setItem('cm_user', JSON.stringify(user));
+    }
+
+    private toAuthUser(user: AuthResponse['user']): AuthUser {
+        return {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+        };
     }
 }

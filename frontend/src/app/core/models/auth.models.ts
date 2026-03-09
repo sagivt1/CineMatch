@@ -13,9 +13,30 @@ export interface RegisterRequest {
     displayName: string;
 }
 
+export interface UpdateProfileRequest {
+    displayName: string;
+}
+
+export interface ChangePasswordRequest {
+    oldPassword: string;
+    newPassword: string;
+}
+
+export interface DeleteAccountRequest {
+    password: string;
+}
+
 /** Raw API response shape – adapter in AuthService maps this to AuthUser */
 export interface AuthResponse {
     accessToken: string;
+    user: {
+        id: string;
+        email: string;
+        displayName: string;
+    };
+}
+
+export interface UpdateProfileResponse {
     user: {
         id: string;
         email: string;
