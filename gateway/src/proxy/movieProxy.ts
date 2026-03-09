@@ -1,9 +1,10 @@
 /* access for core port by proxy - secure */
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { AuthenticatedRequest } from "../types/authRequest";
+import "dotenv/config";
 
 export const movieProxy = createProxyMiddleware({
-  target: "http://core:8000",
+  target: process.env.CORE_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: {
     "^/CineMatch/movies": "/api/movies",},

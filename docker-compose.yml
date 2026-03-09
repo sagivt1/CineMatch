@@ -13,27 +13,35 @@ services:
       - core 
 
   gateway:
-    image: node:22-alpine
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
     container_name: cinematch-gateway
+    restart: unless-stopped
     working_dir: /app
+    environment:
+      PORT: "3000"
+      NODE_ENV: development
+      JWT_SECRET: dev_secret_change_me
+      JWT_EXPIRES_IN: "1h"
+      POSTGRES_USER: cinematch_users_admin
+      POSTGRES_PASSWORD: cinematch_users_password
+      POSTGRES_DB: cinematch_users_db
+      POSTGRES_HOST: users_db
+      POSTGRES_PORT: "5432"
+      CORE_SERVICE_URL: "http://core:8000"
+    ports:
+      - "3001:3000"
     volumes:
       - ./gateway:/app
       - /app/node_modules
-    ports:
-      - "3001:3000"
-    environment:
-      NODE_ENV: development
-      PORT: "3000"
-      DATABASE_URL: "postgresql://cinematch_users_admin:cinematch_users_password@users_db:5432/cinemematch_users_db?schema=public"
-      JWT_SECRET: "dev_secret_change_me"
-      JWT_EXPIRES_IN: "1h"
-    command: sh -c "npm ci && npm run dev"
-    networks:
-      - cinematch-net
     depends_on:
       users_db:
         condition: service_healthy
-
+      core:
+        condition: service_started
+    networks:
+      - cinematch-net
 
   core:
     build: ./core
@@ -73,8 +81,8 @@ services:
 
   users_db:
     image: postgres:15-alpine
-    container_name: cinematch-users-postgres
-    restart: always
+    container_name: cinematch-users-db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: cinematch_users_admin
       POSTGRES_PASSWORD: cinematch_users_password
@@ -83,14 +91,13 @@ services:
       - "5433:5432"
     volumes:
       - users-postgres-data:/var/lib/postgresql/data
-    networks:
-      - cinematch-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cinematch_users_admin -d cinematch_users_db"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 10s
+    networks:
+      - cinematch-net
 
 networks:
   cinematch-net:
