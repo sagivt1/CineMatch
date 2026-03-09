@@ -92,6 +92,37 @@ services:
       retries: 10
       start_period: 10s
 
+  # S3 Compatible Object Storage
+  s3-storage:
+    image: minio/minio:latest
+    container_name: cinematch-s3
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_password
+    ports:
+      - "9000:9000" # API Port (FastAPI and Frontend talk to this)
+      - "9001:9001" # Web UI Port (For browser)
+    command: server /data --console-address ":9001"
+    volumes:
+      - s3-data:/data
+    networks:
+      - cinematch-net
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: cinematch-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rmq_admin
+      RABBITMQ_DEFAULT_PASS: rmq_password
+    ports:
+      - "5672:5672"   # AMQP protocol port (FastAPI talks to this)
+      - "15672:15672" # Web UI port (For browser)
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - cinematch-net
+
 networks:
   cinematch-net:
     driver: bridge
@@ -99,4 +130,6 @@ networks:
 volumes:
   postgres-movies-data:
   users-postgres-data:
+  s3-data:
+  rabbitmq-data:
     
