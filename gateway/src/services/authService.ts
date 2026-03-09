@@ -1,24 +1,56 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "../prisma";
+import { env } from "../config/env";
 
 const SALT_ROUNDS = 10;
 
 export class AuthError extends Error {
-  constructor(public code: "EMAIL_ALREADY_EXISTS" | "INVALID_CREDENTIALS") {
+  constructor(
+    public code:
+      | "EMAIL_ALREADY_EXISTS"
+      | "INVALID_CREDENTIALS"
+      | "USER_NOT_FOUND"
+      | "INVALID_PASSWORD",
+  ) {
     super(code);
   }
 }
 
-export async function registerUser(email: string, password: string) {
+type SafeUser = {
+  id: string;
+  email: string;
+  displayName: string;
+};
+
+type AuthResponse = {
+  accessToken: string;
+  user: SafeUser;
+};
+
+function getJwtSignOptions(): SignOptions {
+  return {
+    expiresIn: env.JWT_EXPIRES_IN as NonNullable<SignOptions["expiresIn"]>,
+  };
+}
+
+function signAccessToken(user: SafeUser): string {
+  return jwt.sign({ sub: user.id, email: user.email }, env.JWT_SECRET, getJwtSignOptions());
+}
+
+export async function registerUser(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<AuthResponse> {
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   try {
     const user = await prisma.user.create({
-      data: { email, passwordHash },
-      select: { id: true, email: true, createdAt: true },
+      data: { email, passwordHash, displayName },
+      select: { id: true, email: true, displayName: true },
     });
-    return user;
+    return { accessToken: signAccessToken(user), user };
   } catch (err: any) {
     if (err?.code === "P2002") {
       throw new AuthError("EMAIL_ALREADY_EXISTS");
@@ -27,10 +59,10 @@ export async function registerUser(email: string, password: string) {
   }
 }
 
-export async function loginUser(email: string, password: string) {
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, passwordHash: true },
+    select: { id: true, email: true, displayName: true, passwordHash: true },
   });
 
   if (!user) {
@@ -42,12 +74,76 @@ export async function loginUser(email: string, password: string) {
     throw new AuthError("INVALID_CREDENTIALS");
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("Missing JWT_SECRET");
+  const accessToken = jwt.sign(
+    { sub: user.id, email: user.email },
+    env.JWT_SECRET,
+    getJwtSignOptions(),
+  );
 
-  const token = jwt.sign({ sub: user.id, email: user.email }, secret, {
-    expiresIn: "1h",
+  return {
+    accessToken,
+    user: { id: user.id, email: user.email, displayName: user.displayName },
+  };
+}
+
+export async function updateUserProfile(userId: string, displayName: string): Promise<SafeUser> {
+  try {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { displayName },
+      select: { id: true, email: true, displayName: true },
+    });
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      throw new AuthError("USER_NOT_FOUND");
+    }
+    throw err;
+  }
+}
+
+export async function changeUserPassword(
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, passwordHash: true },
   });
 
-  return { token };
+  if (!user) {
+    throw new AuthError("USER_NOT_FOUND");
+  }
+
+  const matches = await bcrypt.compare(oldPassword, user.passwordHash);
+  if (!matches) {
+    throw new AuthError("INVALID_PASSWORD");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash },
+  });
+}
+
+export async function deleteUserAccount(userId: string, password: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, passwordHash: true },
+  });
+
+  if (!user) {
+    throw new AuthError("USER_NOT_FOUND");
+  }
+
+  const matches = await bcrypt.compare(password, user.passwordHash);
+  if (!matches) {
+    throw new AuthError("INVALID_PASSWORD");
+  }
+
+  await prisma.user.delete({
+    where: { id: userId },
+  });
 }

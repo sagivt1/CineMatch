@@ -34,7 +34,6 @@ coverage/
 
 # gateway 
 /gateway/node_modules
-/gateway/prisma
 
 # =========================
 # 3. Python / FastAPI (Core)

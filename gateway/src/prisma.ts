@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import "dotenv/config";
+import { env } from "prisma/config";
+import { PrismaClient } from "./generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = `postgresql://${env("POSTGRES_USER")}:${env("POSTGRES_PASSWORD")}@${env("POSTGRES_HOST")}:${env("POSTGRES_PORT")}/${env("POSTGRES_DB")}?schema=public`;
 if (!connectionString) {
   throw new Error("Missing DATABASE_URL");
 }

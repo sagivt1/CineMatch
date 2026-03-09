@@ -1,11 +1,19 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '../models/auth.models';
+import type {
+    AuthResponse,
+    AuthUser,
+    ChangePasswordRequest,
+    DeleteAccountRequest,
+    LoginRequest,
+    RegisterRequest,
+    UpdateProfileRequest,
+    UpdateProfileResponse,
+} from '../models/auth.models';
 
 const TOKEN_KEY = 'cm_access_token';
-const API_BASE = '/api/auth';
+const API_BASE = '/CineMatch/auth';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,32 +33,31 @@ export class AuthService {
 
     // ── Auth Actions ───────────────────────────────────────────────────────────
 
-    login(req: LoginRequest): Observable<AuthResponse> {
-        // Mock Login for development
-        if (req.email === 'demo@cinematch.ai' && req.password === 'password123') {
-            const mockResponse: AuthResponse = {
-                accessToken: 'mock_token_' + Date.now(),
-                user: {
-                    id: '123e4567-e89b-12d3-a456-426614174000',
-                    email: 'demo@cinematch.ai',
-                    displayName: 'Demo User',
-                },
-            };
-            return new Observable<AuthResponse>((subscriber) => {
-                this.handleAuthResponse(mockResponse);
-                subscriber.next(mockResponse);
-                subscriber.complete();
-            });
-        }
-
+    login(req: LoginRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/login`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
         );
     }
 
-    register(req: RegisterRequest): Observable<AuthResponse> {
+    register(req: RegisterRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/register`, req).pipe(
             tap((res) => this.handleAuthResponse(res)),
+        );
+    }
+
+    updateProfile(req: UpdateProfileRequest) {
+        return this.http.patch<UpdateProfileResponse>(`${API_BASE}/me`, req).pipe(
+            tap((res) => this.persistUser(this.toAuthUser(res.user))),
+        );
+    }
+
+    changePassword(req: ChangePasswordRequest) {
+        return this.http.post<void>(`${API_BASE}/change-password`, req);
+    }
+
+    deleteAccount(req: DeleteAccountRequest) {
+        return this.http.delete<void>(`${API_BASE}/me`, { body: req }).pipe(
+            tap(() => this.logout()),
         );
     }
 
@@ -74,15 +81,21 @@ export class AuthService {
 
     /** Adapter: maps raw API response → internal domain model */
     private handleAuthResponse(res: AuthResponse): void {
-        const user: AuthUser = {
-            id: res.user.id,
-            email: res.user.email,
-            displayName: res.user.displayName,
-        };
         this._token.set(res.accessToken);
-        this._user.set(user);
-
         localStorage.setItem(TOKEN_KEY, res.accessToken);
+        this.persistUser(this.toAuthUser(res.user));
+    }
+
+    private persistUser(user: AuthUser): void {
+        this._user.set(user);
         localStorage.setItem('cm_user', JSON.stringify(user));
+    }
+
+    private toAuthUser(user: AuthResponse['user']): AuthUser {
+        return {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+        };
     }
 }
