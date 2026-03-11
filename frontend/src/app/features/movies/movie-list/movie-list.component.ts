@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MovieService } from '../../../core/services/movie.service';
 import { Movie } from '../../../core/models/movie.models';
+import { ScrollRevealDirective } from '../../../core/directives/scroll-reveal.directive';
 
 @Component({
     selector: 'app-movie-list',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, ScrollRevealDirective],
     templateUrl: './movie-list.component.html',
     styleUrls: ['./movie-list.component.css']
 })

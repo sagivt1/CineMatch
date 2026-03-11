@@ -1,8 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd, NavigationStart } from '@angular/router';
 import { TopbarComponent } from './core/layout/topbar/topbar';
 import { FooterComponent } from './core/layout/footer/footer';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -12,17 +11,24 @@ import { filter } from 'rxjs/operators';
 })
 export class App {
   protected readonly title = signal('frontend');
+  readonly pageVisible = signal(false);
   private readonly router = inject(Router);
 
   constructor() {
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      setTimeout(() => {
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-      }, 50);
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.pageVisible.set(false);
+        return;
+      }
+
+      if (event instanceof NavigationEnd) {
+        requestAnimationFrame(() => this.pageVisible.set(true));
+        setTimeout(() => {
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+          window.scrollTo(0, 0);
+        }, 50);
+      }
     });
   }
 }

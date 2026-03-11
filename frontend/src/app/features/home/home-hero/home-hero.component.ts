@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MovieService } from '../../../core/services/movie.service';
-import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
+import { ScrollRevealDirective } from '../../../core/directives/scroll-reveal.directive';
 
 @Component({
     selector: 'app-home-hero',

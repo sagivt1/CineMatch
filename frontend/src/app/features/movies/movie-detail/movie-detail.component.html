@@ -1,14 +1,14 @@
 <div class="movie-detail-container">
     <!-- Status States -->
     @if (loading()) {
-    <div class="loading-state">
+    <div class="loading-state" appScrollReveal>
         <div class="loader"></div>
         <p>Gathering cinematic data...</p>
     </div>
     }
 
     @if (!loading() && error()) {
-    <div class="error-state">
+    <div class="error-state" appScrollReveal>
         <h2>Lost in the void?</h2>
         <p class="error-message">{{ error() }}</p>
         <div class="error-actions">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="movie-content">
-        <div class="detail-grid">
+        <div class="detail-grid" appScrollReveal [revealDelay]="80">
             <div class="poster-column">
                 <img [src]="movieData.posterUrl" [alt]="movieData.title" class="detail-poster">
             </div>
@@ -74,7 +74,7 @@
 
         <!-- "More Like This" Section -->
         @if (relatedMovies().length > 0) {
-        <div class="related-section">
+        <div class="related-section" appScrollReveal [revealDelay]="160">
             <app-movie-row title="More Like This" [movies]="relatedMovies()">
             </app-movie-row>
         </div>

@@ -1,10 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule, LucideIconProvider, LUCIDE_ICONS, Eye, EyeOff } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthLayoutComponent } from '../components/auth-layout/auth-layout.component';
 import type { LoginRequest } from '../../../core/models/auth.models';
+
+const trimmedRequired: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '').toString();
+    return value.trim().length > 0 ? null : { required: true };
+};
 
 @Component({
     selector: 'app-login',
@@ -24,8 +30,8 @@ export class LoginComponent {
     readonly showPassword = signal(false);
 
     readonly form = this.fb.group({
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
+        email: ['', [trimmedRequired]],
+        password: ['', [trimmedRequired]],
     });
 
     togglePassword(): void {
@@ -33,20 +39,27 @@ export class LoginComponent {
     }
 
     onSubmit(): void {
-        if (this.form.invalid || this.isLoading()) return;
+        if (this.isLoading()) return;
+
+        this.errorMessage.set(null);
+        this.form.markAllAsTouched();
+
+        if (this.form.invalid) return;
 
         this.isLoading.set(true);
-        this.errorMessage.set(null);
 
-        const req = this.form.value as LoginRequest;
+        const email = (this.form.controls.email.value ?? '').toString().trim().toLowerCase();
+        const password = (this.form.controls.password.value ?? '').toString();
+        const req: LoginRequest = { email, password };
 
-        this.auth.login(req).subscribe({
+        this.auth.login(req).pipe(
+            finalize(() => this.isLoading.set(false))
+        ).subscribe({
             next: () => {
-                this.router.navigate(['/movies']);
+                this.router.navigate(['/']);
             },
-            error: (err: { error?: { message?: string } }) => {
-                this.errorMessage.set(err?.error?.message ?? 'Login failed. Please try again.');
-                this.isLoading.set(false);
+            error: () => {
+                this.errorMessage.set('Invalid email or password.');
             },
         });
     }

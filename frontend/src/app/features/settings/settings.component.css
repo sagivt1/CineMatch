@@ -23,13 +23,21 @@
 
 .motion-shell {
     opacity: 0;
-    transform: translateY(22px);
-    transition: opacity 420ms ease, transform 420ms ease;
+    transform: translate3d(0, 24px, 0) scale(0.985);
+    filter: blur(1.5px);
+    transition:
+        opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 720ms cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 260ms ease,
+        box-shadow 260ms ease;
+    will-change: opacity, transform;
 }
 
 .motion-shell.is-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+    filter: none;
 }
 
 .settings-hero {
@@ -362,5 +370,6 @@
     .motion-shell {
         opacity: 1;
         transform: none;
+        filter: none;
     }
 }

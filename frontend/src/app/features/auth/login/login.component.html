@@ -5,8 +5,7 @@
     </div>
 
     @if (errorMessage()) {
-    <div class="error-banner" role="alert"
-        style="margin-bottom: var(--spacing-md); color: #ff4444; font-size: 0.875rem; text-align: center;">
+    <div class="error-banner" role="alert">
         {{ errorMessage() }}
     </div>
     }
@@ -15,7 +14,14 @@
         <div class="auth-form-group">
             <label class="auth-label" for="login-email">Email</label>
             <input id="login-email" class="auth-input" type="email" formControlName="email" placeholder="m@example.com"
-                autocomplete="email" />
+                autocomplete="email"
+                [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid"
+                [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid ? 'true' : null" />
+            @if (form.controls.email.touched && form.controls.email.errors) {
+            <div class="auth-field-error" role="alert">
+                @if (form.controls.email.errors['required']) { Email is required. }
+            </div>
+            }
         </div>
 
         <div class="auth-form-group">
@@ -23,12 +29,19 @@
             <div class="auth-pwd-wrapper">
                 <input id="login-password" class="auth-input auth-pwd-input"
                     [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="Password"
-                    autocomplete="current-password" />
+                    autocomplete="current-password"
+                    [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+                    [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid ? 'true' : null" />
                 <button type="button" class="auth-pwd-toggle" (click)="togglePassword()"
                     aria-label="Toggle password visibility">
                     <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
                 </button>
             </div>
+            @if (form.controls.password.touched && form.controls.password.errors) {
+            <div class="auth-field-error" role="alert">
+                @if (form.controls.password.errors['required']) { Password is required. }
+            </div>
+            }
         </div>
 
         <button id="login-submit" class="auth-button" type="submit" [disabled]="isLoading()">

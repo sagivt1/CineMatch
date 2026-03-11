@@ -1,13 +1,13 @@
 <div class="auth-layout-container">
     <!-- Left/Form Side -->
-    <div class="auth-form-side">
+    <div class="auth-form-side" appScrollReveal [revealDelay]="40">
         <div class="auth-form-wrapper">
             <ng-content></ng-content>
         </div>
     </div>
 
     <!-- Right/Image Side (Hidden on Mobile) -->
-    <div class="auth-image-side">
+    <div class="auth-image-side" appScrollReveal [revealDelay]="140">
         <img [src]="imageSrc()" [alt]="imageAlt()" class="auth-bg-image" loading="eager">
         <div class="auth-image-overlay" [style.opacity]="0.5"></div>
         <div class="auth-quote-container">

@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { catchError, throwError, timeout } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import type {
     AuthResponse,
@@ -35,13 +36,19 @@ export class AuthService {
 
     login(req: LoginRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/login`, req).pipe(
+            timeout(8000),
+            tap((res) => this.validateAuthResponse(res)),
             tap((res) => this.handleAuthResponse(res)),
+            catchError((err) => this.toAuthError(err, 'Login failed. Please try again.')),
         );
     }
 
     register(req: RegisterRequest) {
         return this.http.post<AuthResponse>(`${API_BASE}/register`, req).pipe(
+            timeout(8000),
+            tap((res) => this.validateAuthResponse(res)),
             tap((res) => this.handleAuthResponse(res)),
+            catchError((err) => this.toAuthError(err, 'Registration failed. Please try again.')),
         );
     }
 
@@ -89,6 +96,20 @@ export class AuthService {
     private persistUser(user: AuthUser): void {
         this._user.set(user);
         localStorage.setItem('cm_user', JSON.stringify(user));
+    }
+
+    private validateAuthResponse(res: AuthResponse): void {
+        if (!res?.accessToken || !res?.user?.id || !res?.user?.email || !res?.user?.displayName) {
+            throw new Error('Invalid authentication response.');
+        }
+    }
+
+    private toAuthError(err: unknown, fallbackMessage: string) {
+        const error = err as { error?: { message?: string } } | Error;
+        const message = (error as { error?: { message?: string } })?.error?.message
+            ?? (error as Error)?.message
+            ?? fallbackMessage;
+        return throwError(() => new Error(message));
     }
 
     private toAuthUser(user: AuthResponse['user']): AuthUser {

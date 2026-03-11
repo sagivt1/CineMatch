@@ -7,7 +7,7 @@
     }
 
     @if (!loading() && error()) {
-        <div class="error-container">
+        <div class="error-container" appScrollReveal>
             <h3>Something went wrong</h3>
             <p>{{ error() }}</p>
             <button class="btn-retry" (click)="retry()">Try Again</button>
@@ -15,7 +15,7 @@
     }
 
     @if (!loading() && !error() && movies().length > 0) {
-        <section class="hero-section">
+        <section class="hero-section" appScrollReveal [revealDelay]="60">
             <img
                 class="hero-image"
                 [class.is-fading]="isHeroFading()"
@@ -50,7 +50,7 @@
         </section>
 
         <div class="content-stack">
-            <section>
+            <section appScrollReveal [revealDelay]="80">
                 <div class="section-head">
                     <div class="section-title-wrap">
                         <h3>AI Recommendations for You</h3>
@@ -73,7 +73,7 @@
                 </div>
             </section>
 
-            <section>
+            <section appScrollReveal [revealDelay]="140">
                 <div class="section-head">
                     <h3>Top Matches for Your Taste</h3>
                     <a routerLink="/movies" class="section-link">See all</a>
@@ -100,7 +100,7 @@
                 </div>
             </section>
 
-            <section>
+            <section appScrollReveal [revealDelay]="200">
                 <div class="section-head">
                     <h3>Continue Watching</h3>
                 </div>
@@ -121,7 +121,7 @@
                 </div>
             </section>
 
-            <section class="ai-cta">
+            <section class="ai-cta" appScrollReveal [revealDelay]="260">
                 <div class="cta-content">
                     <span class="material-symbols-outlined">psychology</span>
                     <h2>Can't decide what to watch?</h2>
@@ -136,7 +136,7 @@
     }
 
     @if (!loading() && !error() && movies().length === 0) {
-        <div class="empty-state">
+        <div class="empty-state" appScrollReveal>
             <h2>No movies found</h2>
             <p>Our collection is currently undergoing maintenance. Check back soon!</p>
         </div>

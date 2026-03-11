@@ -7,6 +7,7 @@ import {
     ValidatorFn,
     Validators,
 } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule, LucideIconProvider, LUCIDE_ICONS, Eye, EyeOff } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,6 +19,23 @@ const passwordMatchValidator: ValidatorFn = (control: AbstractControl): Validati
     const confirm = control.get('confirmPassword');
     if (!password || !confirm) return null;
     return password.value === confirm.value ? null : { passwordMismatch: true };
+};
+
+const trimmedRequired: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '').toString();
+    return value.trim().length > 0 ? null : { required: true };
+};
+
+const passwordComplexity: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '').toString();
+    if (!value) return null;
+
+    const errors: ValidationErrors = {};
+    if (!/[A-Z]/.test(value)) errors['uppercase'] = true;
+    if (!/[0-9]/.test(value)) errors['number'] = true;
+    if (!/[^A-Za-z0-9]/.test(value)) errors['special'] = true;
+
+    return Object.keys(errors).length > 0 ? errors : null;
 };
 
 @Component({
@@ -40,10 +58,18 @@ export class RegisterComponent {
 
     readonly form = this.fb.group(
         {
-            displayName: ['', [Validators.required, Validators.minLength(2)]],
-            email: ['', [Validators.required, Validators.email]],
-            password: ['', [Validators.required, Validators.minLength(6)]],
-            confirmPassword: ['', Validators.required],
+            displayName: ['', [trimmedRequired, Validators.minLength(2)]],
+            email: ['', [trimmedRequired, Validators.email]],
+            password: [
+                '',
+                [
+                    trimmedRequired,
+                    Validators.minLength(12),
+                    Validators.maxLength(128),
+                    passwordComplexity,
+                ],
+            ],
+            confirmPassword: ['', trimmedRequired],
         },
         { validators: passwordMatchValidator },
     );
@@ -57,21 +83,28 @@ export class RegisterComponent {
     }
 
     onSubmit(): void {
-        if (this.form.invalid || this.isLoading()) return;
+        if (this.isLoading()) return;
+
+        this.errorMessage.set(null);
+        this.form.markAllAsTouched();
+
+        if (this.form.invalid) return;
 
         this.isLoading.set(true);
-        this.errorMessage.set(null);
 
-        const { displayName, email, password } = this.form.value;
-        const req: RegisterRequest = { displayName: displayName!, email: email!, password: password! };
+        const displayName = (this.form.controls.displayName.value ?? '').toString().trim();
+        const email = (this.form.controls.email.value ?? '').toString().trim().toLowerCase();
+        const password = (this.form.controls.password.value ?? '').toString();
+        const req: RegisterRequest = { displayName, email, password };
 
-        this.auth.register(req).subscribe({
+        this.auth.register(req).pipe(
+            finalize(() => this.isLoading.set(false))
+        ).subscribe({
             next: () => {
                 this.router.navigate(['/movies']);
             },
-            error: (err: { error?: { message?: string } }) => {
-                this.errorMessage.set(err?.error?.message ?? 'Registration failed. Please try again.');
-                this.isLoading.set(false);
+            error: () => {
+                this.errorMessage.set('Unable to create your account. Please check your details and try again.');
             },
         });
     }

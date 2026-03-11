@@ -1,5 +1,6 @@
 import { Component, input, computed } from '@angular/core';
 import { TypewriterComponent } from '../typewriter/typewriter.component';
+import { ScrollRevealDirective } from '../../../../core/directives/scroll-reveal.directive';
 
 export interface AuthContent {
     image?: { src: string; alt: string; };
@@ -9,7 +10,7 @@ export interface AuthContent {
 @Component({
     selector: 'app-auth-layout',
     standalone: true,
-    imports: [TypewriterComponent],
+    imports: [TypewriterComponent, ScrollRevealDirective],
     templateUrl: './auth-layout.component.html',
     styleUrls: ['./auth-layout.component.css']
 })
