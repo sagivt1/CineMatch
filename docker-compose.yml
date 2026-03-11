@@ -19,29 +19,23 @@ services:
     container_name: cinematch-gateway
     restart: unless-stopped
     working_dir: /app
-    environment:
-      PORT: "3000"
-      NODE_ENV: development
-      JWT_SECRET: dev_secret_change_me
-      JWT_EXPIRES_IN: "1h"
-      POSTGRES_USER: cinematch_users_admin
-      POSTGRES_PASSWORD: cinematch_users_password
-      POSTGRES_DB: cinematch_users_db
-      POSTGRES_HOST: users_db
-      POSTGRES_PORT: "5432"
-      CORE_SERVICE_URL: "http://core:8000"
+    command: sh -c "npm install && npm run db:prepare && npm run dev"
     ports:
       - "3001:3000"
     volumes:
       - ./gateway:/app
-      - /app/node_modules
+      - gateway-node-modules:/app/node_modules
     depends_on:
       users_db:
         condition: service_healthy
       core:
         condition: service_started
+      s3-storage:
+        condition: service_started
     networks:
       - cinematch-net
+
+
 
   core:
     build: ./core
@@ -139,4 +133,4 @@ volumes:
   users-postgres-data:
   s3-data:
   rabbitmq-data:
-    
+  gateway-node-modules:

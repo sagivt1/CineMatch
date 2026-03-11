@@ -21,12 +21,20 @@ type SafeUser = {
   id: string;
   email: string;
   displayName: string;
+  avatarUrl: string | null;
 };
 
 type AuthResponse = {
   accessToken: string;
   user: SafeUser;
 };
+
+const safeUserSelect = {
+  id: true,
+  email: true,
+  displayName: true,
+  avatarUrl: true,
+} as const;
 
 function getJwtSignOptions(): SignOptions {
   return {
@@ -48,13 +56,15 @@ export async function registerUser(
   try {
     const user = await prisma.user.create({
       data: { email, passwordHash, displayName },
-      select: { id: true, email: true, displayName: true },
+      select: safeUserSelect,
     });
+
     return { accessToken: signAccessToken(user), user };
   } catch (err: any) {
     if (err?.code === "P2002") {
       throw new AuthError("EMAIL_ALREADY_EXISTS");
     }
+
     throw err;
   }
 }
@@ -62,7 +72,7 @@ export async function registerUser(
 export async function loginUser(email: string, password: string): Promise<AuthResponse> {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, displayName: true, passwordHash: true },
+    select: { ...safeUserSelect, passwordHash: true },
   });
 
   if (!user) {
@@ -82,7 +92,12 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
 
   return {
     accessToken,
-    user: { id: user.id, email: user.email, displayName: user.displayName },
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+    },
   };
 }
 
@@ -91,12 +106,13 @@ export async function updateUserProfile(userId: string, displayName: string): Pr
     return await prisma.user.update({
       where: { id: userId },
       data: { displayName },
-      select: { id: true, email: true, displayName: true },
+      select: safeUserSelect,
     });
   } catch (err: any) {
     if (err?.code === "P2025") {
       throw new AuthError("USER_NOT_FOUND");
     }
+
     throw err;
   }
 }
@@ -146,4 +162,20 @@ export async function deleteUserAccount(userId: string, password: string): Promi
   await prisma.user.delete({
     where: { id: userId },
   });
+}
+
+export async function updateUserAvatar(userId: string, avatarUrl: string): Promise<SafeUser> {
+  try {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+      select: safeUserSelect,
+    });
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      throw new AuthError("USER_NOT_FOUND");
+    }
+
+    throw err;
+  }
 }
