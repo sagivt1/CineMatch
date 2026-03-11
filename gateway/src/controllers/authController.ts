@@ -8,7 +8,6 @@ import {
   registerUser,
   updateUserProfile,
 } from "../services/authService";
-import { normalizeAvatarKey } from "../utils/avatar";
 
 function isValidEmail(email: string) {
   return typeof email === "string" && email.includes("@") && email.length <= 255;
@@ -20,23 +19,6 @@ function isValidPassword(password: string) {
 
 function isValidDisplayName(displayName: string) {
   return typeof displayName === "string" && displayName.trim().length >= 2 && displayName.trim().length <= 80;
-}
-
-function isValidAvatarInput(avatarUrl: unknown) {
-  if (avatarUrl === null) {
-    return true;
-  }
-
-  if (typeof avatarUrl !== "string") {
-    return false;
-  }
-
-  const trimmed = avatarUrl.trim();
-  if (!trimmed || trimmed.length > 500) {
-    return false;
-  }
-
-  return normalizeAvatarKey(trimmed) !== null;
 }
 
 function getAuthenticatedUserId(req: AuthenticatedRequest, res: Response): string | null {
@@ -98,30 +80,14 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
     return;
   }
 
-  const { displayName, avatarUrl } = req.body ?? {};
-  const hasDisplayName = displayName !== undefined;
-  const hasAvatarUrl = avatarUrl !== undefined;
+  const { displayName } = req.body ?? {};
 
-  if (!hasDisplayName && !hasAvatarUrl) {
-    return res.status(400).json({ error: "INVALID_INPUT", message: "No profile updates supplied" });
-  }
-
-  if (hasDisplayName && !isValidDisplayName(displayName)) {
+  if (!isValidDisplayName(displayName)) {
     return res.status(400).json({ error: "INVALID_INPUT", message: "Invalid displayName" });
   }
 
-  if (hasAvatarUrl && !isValidAvatarInput(avatarUrl)) {
-    return res.status(400).json({ error: "INVALID_INPUT", message: "Invalid avatarUrl" });
-  }
-
   try {
-    const normalizedAvatarUrl =
-      hasAvatarUrl && typeof avatarUrl === "string" ? normalizeAvatarKey(avatarUrl) : avatarUrl;
-
-    const user = await updateUserProfile(userId, {
-      displayName: hasDisplayName ? displayName.trim() : undefined,
-      avatarUrl: hasAvatarUrl ? (typeof normalizedAvatarUrl === "string" ? normalizedAvatarUrl.trim() : normalizedAvatarUrl) : undefined,
-    });
+    const user = await updateUserProfile(userId, displayName.trim());
     return res.status(200).json({ user });
   } catch (err: any) {
     if (err instanceof AuthError && err.code === "USER_NOT_FOUND") {

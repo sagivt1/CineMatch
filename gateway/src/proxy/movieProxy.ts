@@ -62,13 +62,3 @@ export const confirmUploadProxy = createProxyMiddleware({
     proxyReq: injectUserHeader,
   },
 });
-
-export const avatarUploadUrlProxy = createProxyMiddleware({
-  target: coreServiceUrl,
-  changeOrigin: true,
-  pathRewrite: (_path, req) =>
-    rewriteWithQuery("/api/avatar-upload-url", req as Request),
-  on: {
-    proxyReq: injectUserHeader,
-  },
-});

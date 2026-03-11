@@ -5,7 +5,6 @@ This module handles interactions with AWS S3 (or compatible services like MinIO)
 It provides functions to obtain an authenticated S3 client and to initialize
 the required storage bucket.
 """
-import json
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -35,13 +34,15 @@ def get_s3_client():
     )
 
 
-def init_s3_bucket(bucket_name: str, public_read: bool = True):
+def init_s3_bucket():
     """
-    Initializes the S3 bucket with the given name.
-
+    Initializes the S3 bucket defined in settings.
+    
     Checks if the bucket exists. If it does not (404 error), it creates it.
     """
+    setting = get_s3_settings()
     client = get_s3_client()
+    bucket_name = setting.S3_BUCKET_NAME
 
     try:
         # head_bucket is a cheap call to check if a bucket exists and we have permission to access it.
@@ -59,25 +60,3 @@ def init_s3_bucket(bucket_name: str, public_read: bool = True):
         else:
             # Re-raise or log unexpected errors (e.g., 403 Forbidden).
             print(f"[S3] Unexpected error checking bucket: {e}", flush=True)
-
-    # Ensure bucket objects are publicly readable so the frontend can display images
-    # via direct URLs (avatars/posters) without signed GET requests.
-    if public_read:
-        public_read_policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "PublicReadGetObject",
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": ["s3:GetObject"],
-                    "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-                }
-            ],
-        }
-
-        try:
-            client.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps(public_read_policy))
-            print(f"[S3] Bucket {bucket_name} policy set to public read.", flush=True)
-        except ClientError as e:
-            print(f"[S3] Failed to set bucket policy: {e}", flush=True)
