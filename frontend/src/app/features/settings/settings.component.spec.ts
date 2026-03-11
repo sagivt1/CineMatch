@@ -15,6 +15,7 @@ describe('SettingsComponent', () => {
         id: 'user-1',
         email: 'user@mail.com',
         displayName: 'Existing User',
+        avatarUrl: null,
     });
 
     const authMock = {
@@ -24,8 +25,10 @@ describe('SettingsComponent', () => {
                 id: 'user-1',
                 email: 'user@mail.com',
                 displayName: 'Updated User',
+                avatarUrl: null,
             },
         })),
+        uploadAvatar: vi.fn(),
         changePassword: vi.fn().mockReturnValue(of(null)),
         deleteAccount: vi.fn().mockReturnValue(of(null)),
     };
@@ -38,6 +41,7 @@ describe('SettingsComponent', () => {
             id: 'user-1',
             email: 'user@mail.com',
             displayName: 'Existing User',
+            avatarUrl: null,
         });
 
         await TestBed.configureTestingModule({

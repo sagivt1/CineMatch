@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "../prisma";
 import { env } from "../config/env";
+import { buildAvatarUrl, normalizeAvatarKey } from "../utils/avatar";
 
 const SALT_ROUNDS = 10;
 
@@ -21,6 +22,7 @@ type SafeUser = {
   id: string;
   email: string;
   displayName: string;
+  avatarUrl: string | null;
 };
 
 type AuthResponse = {
@@ -50,7 +52,10 @@ export async function registerUser(
       data: { email, passwordHash, displayName },
       select: { id: true, email: true, displayName: true },
     });
-    return { accessToken: signAccessToken(user), user };
+    return {
+      accessToken: signAccessToken({ ...user, avatarUrl: null }),
+      user: { ...user, avatarUrl: null },
+    };
   } catch (err: any) {
     if (err?.code === "P2002") {
       throw new AuthError("EMAIL_ALREADY_EXISTS");
@@ -60,10 +65,21 @@ export async function registerUser(
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthResponse> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, displayName: true, passwordHash: true },
-  });
+  const rows = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      email: string;
+      displayName: string;
+      avatarUrl: string | null;
+      avatarUpdatedAt: Date | null;
+      passwordHash: string;
+    }>
+  >`SELECT id, email, "displayName", "avatarUrl", "avatarUpdatedAt", "passwordHash"
+    FROM "users"
+    WHERE email = ${email}
+    LIMIT 1`;
+
+  const user = rows[0];
 
   if (!user) {
     throw new AuthError("INVALID_CREDENTIALS");
@@ -82,17 +98,67 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
 
   return {
     accessToken,
-    user: { id: user.id, email: user.email, displayName: user.displayName },
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      avatarUrl: buildAvatarUrl(user.avatarUrl ?? null, user.avatarUpdatedAt ?? null),
+    },
   };
 }
 
-export async function updateUserProfile(userId: string, displayName: string): Promise<SafeUser> {
+type ProfileUpdates = {
+  displayName?: string;
+  avatarUrl?: string | null;
+};
+
+export async function updateUserProfile(userId: string, updates: ProfileUpdates): Promise<SafeUser> {
   try {
-    return await prisma.user.update({
+    const existing = await prisma.user.findUnique({
       where: { id: userId },
-      data: { displayName },
-      select: { id: true, email: true, displayName: true },
+      select: { id: true },
     });
+
+    if (!existing) {
+      throw new AuthError("USER_NOT_FOUND");
+    }
+
+    if (typeof updates.displayName === "string") {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { displayName: updates.displayName },
+      });
+    }
+
+    if (updates.avatarUrl !== undefined) {
+      const avatarKey =
+        updates.avatarUrl === null ? null : normalizeAvatarKey(updates.avatarUrl) ?? updates.avatarUrl;
+      const avatarUpdatedAt = avatarKey ? new Date() : null;
+      await prisma.$executeRaw`
+        UPDATE "users"
+        SET "avatarUrl" = ${avatarKey}, "avatarUpdatedAt" = ${avatarUpdatedAt}
+        WHERE id = ${userId}
+      `;
+    }
+
+    const rows = await prisma.$queryRaw<
+      Array<{ id: string; email: string; displayName: string; avatarUrl: string | null; avatarUpdatedAt: Date | null }>
+    >`SELECT id, email, "displayName", "avatarUrl", "avatarUpdatedAt"
+      FROM "users"
+      WHERE id = ${userId}
+      LIMIT 1`;
+
+    const user = rows[0];
+    if (!user) {
+      throw new AuthError("USER_NOT_FOUND");
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      avatarUrl: buildAvatarUrl(user.avatarUrl ?? null, user.avatarUpdatedAt ?? null),
+    };
   } catch (err: any) {
     if (err?.code === "P2025") {
       throw new AuthError("USER_NOT_FOUND");

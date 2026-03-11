@@ -20,6 +20,92 @@ from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 
 from .dependencies import get_user_id
 
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+def resolve_content_type(content_type: str | None) -> str:
+    if not content_type:
+        return "image/jpeg"
+
+    if content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported image content type.")
+
+    return content_type
+
+
+def resolve_avatar_bucket() -> str:
+    settings = get_s3_settings()
+    return settings.S3_AVATAR_BUCKET_NAME or f"{settings.S3_BUCKET_NAME}-avatars"
+
+
+def build_public_url(file_key: str, bucket_name: str | None = None) -> str:
+    settings = get_s3_settings()
+    resolved_bucket = bucket_name or settings.S3_BUCKET_NAME
+    base_url = settings.S3_ENDPOINT_URL.replace("s3-storage", "localhost")
+    return f"{base_url}/{resolved_bucket}/{file_key}"
+
+
+def create_presigned_upload(
+    filename: str,
+    content_type: str,
+    prefix: str,
+    s3_client,
+    bucket_name: str | None = None,
+    object_name: str | None = None,
+) -> dict:
+    import boto3
+    from botocore.config import Config
+    
+    settings = get_s3_settings()
+    resolved_bucket = bucket_name or settings.S3_BUCKET_NAME
+
+    if object_name:
+        object_name = object_name.strip("/")
+    else:
+        file_extension = filename.split('.')[-1] if '.' in filename else ''
+        unique_filename = f"{uuid.uuid4()}"
+        if file_extension:
+            unique_filename = f"{unique_filename}.{file_extension}"
+
+        sanitized_prefix = prefix.strip("/")
+        object_name = f"{sanitized_prefix}/{unique_filename}" if sanitized_prefix else unique_filename
+
+    try:
+        # The S3 presigned URL signs the Host header.
+        # We must generate the URL using the external endpoint the browser will use (localhost),
+        # instead of the internal Docker hostname (s3-storage), otherwise MinIO rejects the signature.
+        external_endpoint = settings.S3_ENDPOINT_URL.replace("s3-storage", "localhost")
+        
+        external_client = boto3.client(
+            's3',
+            endpoint_url=external_endpoint,
+            aws_access_key_id=settings.S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
+            region_name=settings.S3_REGION,
+            config=Config(signature_version='s3v4'),
+        )
+
+        presigned_url = external_client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': resolved_bucket,
+                'Key': object_name,
+                'ContentType': content_type,
+            },
+            ExpiresIn=3600,
+        )
+
+        return {
+            "upload_url": presigned_url,
+            "file_key": object_name,
+            "public_url": build_public_url(object_name, resolved_bucket),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not generate upload URL: {str(e)}",
+        )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,7 +117,9 @@ async def lifespan(app: FastAPI):
     # Initialize the database (create tables if they don't exist)
     init_db()
     # Initialize the S3 bucket (create if not exists)
-    init_s3_bucket()
+    settings = get_s3_settings()
+    init_s3_bucket(settings.S3_BUCKET_NAME)
+    init_s3_bucket(resolve_avatar_bucket())
     # Initialize RabbitMQ (connect and declare exchanges)
     await init_rabbitmq()
     yield
@@ -133,7 +221,8 @@ async def create_movie(
 
 @app.get("/api/upload-url")
 def generate_presigned_url(
-    filename: str, 
+    filename: str,
+    content_type: str | None = None,
     s3_client = Depends(get_s3_client)
 ):
     """
@@ -145,42 +234,40 @@ def generate_presigned_url(
 
     Args:
         filename (str): The original filename (used to extract extension).
+        content_type (str | None): Optional content type for the upload.
         s3_client: The S3 client injected by dependency.
 
     Returns:
-        dict: Contains 'upload_url' and 'file_key'.
+        dict: Contains 'upload_url', 'file_key', and 'public_url'.
     """
-    setting = get_s3_settings()
-    bucket_name = setting.S3_BUCKET_NAME
-    
-    # Generate a unique filename using UUID to prevent overwrites.
-    file_extension = filename.split('.')[-1] if '.' in filename else ''
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    object_name = f"posters/{unique_filename}"
+    resolved_type = resolve_content_type(content_type)
+    return create_presigned_upload(
+        filename=filename,
+        content_type=resolved_type,
+        prefix="posters",
+        s3_client=s3_client,
+    )
 
-    try:
-        # Generate a presigned URL for the 'put_object' operation.
-        # This allows the frontend to upload directly to S3 without passing through the backend.
-        presigned_url = s3_client.generate_presigned_url(
-            ClientMethod='put_object',
-            Params={
-                'Bucket': bucket_name,
-                'Key': object_name,
-                'ContentType': 'image/jpeg'
-            },
-            ExpiresIn=3600
-        )
 
-        return {
-            "upload_url": presigned_url,
-            "file_key": object_name
-        }
-    except Exception as e:
-        # Log the error (in a real app) and return a 500 response.
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Could not generate upload URL: {str(e)}"
-        )
+@app.get("/api/avatar-upload-url")
+def generate_avatar_upload_url(
+    filename: str,
+    user_id: Annotated[str, Depends(get_user_id)],
+    s3_client = Depends(get_s3_client),
+    content_type: str | None = None,
+):
+    """
+    Generates a presigned URL for uploading a user avatar to S3.
+    """
+    resolved_type = resolve_content_type(content_type)
+    return create_presigned_upload(
+        filename=filename,
+        content_type=resolved_type,
+        prefix="",
+        s3_client=s3_client,
+        bucket_name=resolve_avatar_bucket(),
+        object_name=str(user_id),
+    )
 
 @app.post("/api/upload-confirm", response_model=MovieResponse)
 async def confirm_upload(    
@@ -206,13 +293,7 @@ async def confirm_upload(
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
     
-    settings = get_s3_settings()
-
-    # Construct the public URL. 
-    # Note: In a local Docker environment, 's3-storage' is the internal hostname.
-    # We replace it with 'localhost' so the URL is accessible from the host machine/browser.
-    base_url = settings.S3_ENDPOINT_URL.replace("s3-storage", "localhost")
-    public_poster_url = f"{base_url}/{settings.S3_BUCKET_NAME}/{payload.file_key}"
+    public_poster_url = build_public_url(payload.file_key)
 
     # Update the movie record
     movie.poster_url = public_poster_url

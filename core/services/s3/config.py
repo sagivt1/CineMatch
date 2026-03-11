@@ -24,6 +24,7 @@ class S3Settings(BaseSettings):
     S3_ACCESS_KEY_ID: str
     S3_SECRET_ACCESS_KEY: str
     S3_BUCKET_NAME: str
+    S3_AVATAR_BUCKET_NAME: str | None = None
     S3_REGION: str = "us-east-1"
 
     # Configuration for Pydantic Settings

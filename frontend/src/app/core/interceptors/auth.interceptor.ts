@@ -5,8 +5,10 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const auth = inject(AuthService);
     const token = auth.token();
+    const url = req.url.toLowerCase();
+    const isPresignedUpload = url.includes('x-amz-algorithm=') || url.includes('x-amz-signature=');
 
-    if (!token) {
+    if (!token || isPresignedUpload) {
         return next(req);
     }
 

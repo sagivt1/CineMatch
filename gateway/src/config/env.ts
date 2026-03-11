@@ -47,5 +47,8 @@ export const env = {
 
   JWT_SECRET: requireEnv("JWT_SECRET"),
 
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "1h"
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "1h",
+
+  AVATAR_PUBLIC_BASE_URL:
+    (process.env.AVATAR_PUBLIC_BASE_URL ?? "http://localhost:9000/cinematch-avatars").replace(/\/+$/, "")
 };

@@ -36,10 +36,11 @@
                             <p class="tier">Premium</p>
                         </div>
                         <div class="avatar-wrap">
-                            <img
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYHHw6H_X0LajfI01Jsrusjd5nIGVxk2ONPCdZZWzJuYvOSQbcKp4C3Zj9QUaJaVWROSKSBpJKSjkYN9dG19GbWdhiQBvhzzDSpkuoyyuyAOYz18AhwPT_r09owDMWNsXgznYdlGIIFssKofZwHskRdkPPpQBKrugH_Aws1PSGAHlGQzP23PfZ4OIaeB4cX2cSz9IlLuyOdH8oZA7rjKhr6a3v1dvozuFvA1gL6BZsEliQyHBlQQr3JQvj_AwbgE2FvaM3kRyQYdk"
-                                alt="User avatar"
-                            />
+                            @if (user()?.avatarUrl) {
+                                <img [src]="user()?.avatarUrl" alt="User avatar" />
+                            } @else {
+                                <span class="avatar-fallback">{{ getAvatarInitials() }}</span>
+                            }
                         </div>
                         <span class="material-symbols-outlined profile-caret">expand_more</span>
                     </summary>

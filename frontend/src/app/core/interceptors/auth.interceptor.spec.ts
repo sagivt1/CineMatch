@@ -71,4 +71,17 @@ describe('authInterceptor', () => {
         expect(req.request.headers.get('Authorization')).toBe('Bearer immutable-check-token');
         req.flush({});
     });
+
+    it('should NOT attach Authorization for presigned upload URLs', () => {
+        setupWithToken('signed-upload-token');
+
+        const presignedUrl =
+            'http://localhost:9000/cinematch-posters/avatars/test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc123';
+
+        http.put(presignedUrl, new Blob(['test'], { type: 'image/png' })).subscribe();
+
+        const req = httpMock.expectOne(presignedUrl);
+        expect(req.request.headers.has('Authorization')).toBe(false);
+        req.flush({});
+    });
 });

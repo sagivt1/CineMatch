@@ -45,6 +45,52 @@
                 </div>
             </div>
 
+            <div class="avatar-panel">
+                <div class="avatar-preview">
+                    @if (avatarPreviewUrl() || currentUser()?.avatarUrl) {
+                        <img
+                            [src]="avatarPreviewUrl() ?? currentUser()?.avatarUrl"
+                            alt="Profile avatar preview"
+                        />
+                    } @else {
+                        <span class="avatar-fallback">{{ getAvatarInitials() }}</span>
+                    }
+                </div>
+                <div class="avatar-details">
+                    <h3>Profile image</h3>
+                    <p>Upload a square JPG, PNG, or WebP under 3MB.</p>
+                    <div class="avatar-actions">
+                        <input
+                            #avatarInput
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            class="avatar-input"
+                            (change)="onAvatarSelected($event)"
+                        />
+                        <button type="button" class="btn-secondary" (click)="avatarInput.click()">
+                            Choose image
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-primary"
+                            [disabled]="!selectedAvatarFile() || isAvatarUploading()"
+                            (click)="uploadAvatar()"
+                        >
+                            @if (isAvatarUploading()) {
+                                Uploading...
+                            } @else {
+                                Save avatar
+                            }
+                        </button>
+                    </div>
+                    @if (avatarFeedback()) {
+                        <div class="status-banner compact" [class.error]="avatarFeedback()!.type === 'error'">
+                            {{ avatarFeedback()!.message }}
+                        </div>
+                    }
+                </div>
+            </div>
+
             @if (profileFeedback()) {
                 <div class="status-banner" [class.error]="profileFeedback()!.type === 'error'">
                     {{ profileFeedback()!.message }}

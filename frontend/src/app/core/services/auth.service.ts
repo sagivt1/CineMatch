@@ -1,10 +1,11 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, throwError, timeout } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, map, switchMap, throwError, timeout } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import type {
     AuthResponse,
     AuthUser,
+    AvatarUploadResponse,
     ChangePasswordRequest,
     DeleteAccountRequest,
     LoginRequest,
@@ -55,6 +56,29 @@ export class AuthService {
     updateProfile(req: UpdateProfileRequest) {
         return this.http.patch<UpdateProfileResponse>(`${API_BASE}/me`, req).pipe(
             tap((res) => this.persistUser(this.toAuthUser(res.user))),
+        );
+    }
+
+    getAvatarUploadUrl(filename: string, contentType: string) {
+        return this.http.get<AvatarUploadResponse>(`${API_BASE}/avatar-upload-url`, {
+            params: {
+                filename,
+                content_type: contentType,
+            },
+        }).pipe(timeout(8000));
+    }
+
+    uploadAvatar(file: File) {
+        const contentType = file.type || 'image/jpeg';
+
+        return this.getAvatarUploadUrl(file.name, contentType).pipe(
+            switchMap((upload) =>
+                this.http.put(upload.upload_url, file, {
+                    headers: new HttpHeaders({ 'Content-Type': contentType }),
+                    observe: 'response',
+                }).pipe(map(() => upload.public_url)),
+            ),
+            switchMap((publicUrl) => this.updateProfile({ avatarUrl: publicUrl })),
         );
     }
 
@@ -117,6 +141,7 @@ export class AuthService {
             id: user.id,
             email: user.email,
             displayName: user.displayName,
+            avatarUrl: user.avatarUrl ?? null,
         };
     }
 }

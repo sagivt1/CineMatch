@@ -12,6 +12,8 @@ model User {
   email        String   @unique
   displayName  String
   passwordHash String
+  avatarUrl    String?
+  avatarUpdatedAt DateTime?
   createdAt    DateTime @default(now())
 
   @@map("users")
