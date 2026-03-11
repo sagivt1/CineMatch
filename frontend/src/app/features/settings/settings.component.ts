@@ -29,6 +29,14 @@ type FeedbackState = {
     message: string;
 };
 
+const AVATAR_OUTPUT_SIZE = 512;
+const AVATAR_MAX_INPUT_BYTES = 6 * 1024 * 1024;
+const AVATAR_TARGET_BYTES = 300 * 1024;
+const AVATAR_HARD_MAX_BYTES = 1024 * 1024;
+const AVATAR_MIN_QUALITY = 0.6;
+const AVATAR_START_QUALITY = 0.86;
+const AVATAR_QUALITY_STEP = 0.08;
+
 @Component({
     selector: 'app-settings',
     standalone: true,
@@ -42,6 +50,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly revealTimers: ReturnType<typeof setTimeout>[] = [];
     private objectPreviewUrl: string | null = null;
+    private avatarSelectionId = 0;
 
     readonly currentUser = this.auth.currentUser;
 
@@ -55,6 +64,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     readonly isDeleting = signal(false);
     readonly isDeleteConfirming = signal(false);
     readonly isAvatarUploading = signal(false);
+    readonly isAvatarProcessing = signal(false);
 
     readonly profileFeedback = signal<FeedbackState | null>(null);
     readonly passwordFeedback = signal<FeedbackState | null>(null);
@@ -165,30 +175,54 @@ export class SettingsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const maxSizeBytes = 3 * 1024 * 1024;
-        if (file.size > maxSizeBytes) {
+        if (file.size > AVATAR_MAX_INPUT_BYTES) {
             this.avatarFeedback.set({
                 type: 'error',
-                message: 'Avatar size must be under 3MB.',
+                message: 'Avatar file must be under 6MB before optimization.',
             });
             input.value = '';
             return;
         }
 
-        this.selectedAvatarFile.set(file);
-        this.avatarFeedback.set({
-            type: 'success',
-            message: 'Preview ready. Save to upload.',
+        const selectionId = ++this.avatarSelectionId;
+        this.isAvatarProcessing.set(true);
+        this.avatarFeedback.set({ type: 'success', message: 'Optimizing image...' });
+
+        void this.prepareAvatarFile(file).then((result) => {
+            if (selectionId !== this.avatarSelectionId) {
+                return;
+            }
+
+            this.selectedAvatarFile.set(result.file);
+            this.avatarFeedback.set({
+                type: 'success',
+                message: 'Preview ready. Save to upload.',
+            });
+
+            this.setPreviewUrl(result.previewUrl, true);
+        }).catch((err: Error) => {
+            if (selectionId !== this.avatarSelectionId) {
+                return;
+            }
+
+            this.avatarFeedback.set({
+                type: 'error',
+                message: err.message || 'Unable to optimize the image.',
+            });
+            this.selectedAvatarFile.set(null);
+            this.setPreviewUrl(null);
+        }).finally(() => {
+            if (selectionId === this.avatarSelectionId) {
+                this.isAvatarProcessing.set(false);
+            }
         });
 
-        const previewUrl = URL.createObjectURL(file);
-        this.setPreviewUrl(previewUrl, true);
         input.value = '';
     }
 
     uploadAvatar(): void {
         const file = this.selectedAvatarFile();
-        if (!file || this.isAvatarUploading()) {
+        if (!file || this.isAvatarUploading() || this.isAvatarProcessing()) {
             return;
         }
 
@@ -206,7 +240,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             error: (err: { error?: { message?: string } }) => {
                 this.avatarFeedback.set({
                     type: 'error',
-                    message: err?.error?.message ?? 'Unable to update avatar right now.',
+                    message: err?.error?.message ?? (err as { message?: string })?.message ?? 'Unable to update avatar right now.',
                 });
             },
         });
@@ -311,5 +345,73 @@ export class SettingsComponent implements OnInit, OnDestroy {
             URL.revokeObjectURL(this.objectPreviewUrl);
             this.objectPreviewUrl = null;
         }
+    }
+
+    private async prepareAvatarFile(file: File): Promise<{ file: File; previewUrl: string }> {
+        const image = await this.loadImage(file);
+        const size = Math.min(image.width, image.height);
+        const sx = Math.max(0, (image.width - size) / 2);
+        const sy = Math.max(0, (image.height - size) / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = AVATAR_OUTPUT_SIZE;
+        canvas.height = AVATAR_OUTPUT_SIZE;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Unable to process the image.');
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(image.element, sx, sy, size, size, 0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE);
+        if ('close' in image.element && typeof (image.element as ImageBitmap).close === 'function') {
+            (image.element as ImageBitmap).close();
+        }
+
+        let quality = AVATAR_START_QUALITY;
+        let blob = await this.canvasToBlob(canvas, 'image/jpeg', quality);
+
+        while (blob.size > AVATAR_TARGET_BYTES && quality > AVATAR_MIN_QUALITY) {
+            quality = Math.max(AVATAR_MIN_QUALITY, quality - AVATAR_QUALITY_STEP);
+            blob = await this.canvasToBlob(canvas, 'image/jpeg', quality);
+        }
+
+        if (blob.size > AVATAR_HARD_MAX_BYTES) {
+            throw new Error('Avatar is still too large after optimization. Try a smaller image.');
+        }
+
+        const optimizedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        const previewUrl = URL.createObjectURL(blob);
+        return { file: optimizedFile, previewUrl };
+    }
+
+    private async loadImage(file: File): Promise<{ element: CanvasImageSource; width: number; height: number }> {
+        if ('createImageBitmap' in window) {
+            const bitmap = await createImageBitmap(file);
+            return { element: bitmap, width: bitmap.width, height: bitmap.height };
+        }
+
+        const imageUrl = URL.createObjectURL(file);
+        try {
+            const img = new Image();
+            img.src = imageUrl;
+            await img.decode();
+            return { element: img, width: img.naturalWidth, height: img.naturalHeight };
+        } finally {
+            URL.revokeObjectURL(imageUrl);
+        }
+    }
+
+    private canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('Image conversion failed.'));
+                    return;
+                }
+                resolve(blob);
+            }, type, quality);
+        });
     }
 }

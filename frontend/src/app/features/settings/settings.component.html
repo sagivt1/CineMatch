@@ -58,7 +58,7 @@
                 </div>
                 <div class="avatar-details">
                     <h3>Profile image</h3>
-                    <p>Upload a square JPG, PNG, or WebP under 3MB.</p>
+                    <p>Upload a JPG, PNG, or WebP (up to 6MB). We'll crop and optimize to 512x512 JPEG.</p>
                     <div class="avatar-actions">
                         <input
                             #avatarInput
@@ -73,10 +73,12 @@
                         <button
                             type="button"
                             class="btn-primary"
-                            [disabled]="!selectedAvatarFile() || isAvatarUploading()"
+                            [disabled]="!selectedAvatarFile() || isAvatarUploading() || isAvatarProcessing()"
                             (click)="uploadAvatar()"
                         >
-                            @if (isAvatarUploading()) {
+                            @if (isAvatarProcessing()) {
+                                Processing...
+                            } @else if (isAvatarUploading()) {
                                 Uploading...
                             } @else {
                                 Save avatar

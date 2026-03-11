@@ -59,26 +59,31 @@ export class AuthService {
         );
     }
 
-    getAvatarUploadUrl(filename: string, contentType: string) {
-        return this.http.get<AvatarUploadResponse>(`${API_BASE}/avatar-upload-url`, {
+    getAvatarUploadUrl(contentType: string) {
+        return this.http.get<AvatarUploadResponse>(`${API_BASE}/me/avatar/upload-url`, {
             params: {
-                filename,
-                content_type: contentType,
+                contentType,
             },
         }).pipe(timeout(8000));
+    }
+
+    confirmAvatarUpload(fileKey: string) {
+        return this.http.post<UpdateProfileResponse>(`${API_BASE}/me/avatar/confirm`, { fileKey }).pipe(
+            tap((res) => this.persistUser(this.toAuthUser(res.user))),
+        );
     }
 
     uploadAvatar(file: File) {
         const contentType = file.type || 'image/jpeg';
 
-        return this.getAvatarUploadUrl(file.name, contentType).pipe(
+        return this.getAvatarUploadUrl(contentType).pipe(
             switchMap((upload) =>
-                this.http.put(upload.upload_url, file, {
+                this.http.put(upload.uploadUrl, file, {
                     headers: new HttpHeaders({ 'Content-Type': contentType }),
                     observe: 'response',
-                }).pipe(map(() => upload.public_url)),
+                }).pipe(map(() => upload.fileKey)),
             ),
-            switchMap((publicUrl) => this.updateProfile({ avatarUrl: publicUrl })),
+            switchMap((fileKey) => this.confirmAvatarUpload(fileKey)),
         );
     }
 

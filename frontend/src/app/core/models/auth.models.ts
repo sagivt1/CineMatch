@@ -58,7 +58,7 @@ export interface AuthUser {
 }
 
 export interface AvatarUploadResponse {
-    upload_url: string;
-    file_key: string;
-    public_url: string;
+    uploadUrl: string;
+    fileKey: string;
+    publicUrl: string;
 }

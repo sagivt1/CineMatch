@@ -1,13 +1,7 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../types/authRequest";
-import {
-  AuthError,
-  changeUserPassword,
-  deleteUserAccount,
-  loginUser,
-  registerUser,
-  updateUserProfile,
-} from "../services/authService";
+import {AuthError,changeUserPassword,deleteUserAccount,loginUser,registerUser,updateUserProfile,updateUserAvatar,} from "../services/authService";
+import {buildPublicFileUrl,createAvatarUploadUrl,validateAvatarContentType,} from "../services/S3Service";
 
 function isValidEmail(email: string) {
   return typeof email === "string" && email.includes("@") && email.length <= 255;
@@ -168,3 +162,81 @@ export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
     });
   }
 }
+
+export async function getAvatarUploadUrl(req: AuthenticatedRequest, res: Response) {
+  const userId = getAuthenticatedUserId(req, res);
+  if (!userId) {
+    return;
+  }
+
+  const { contentType } = req.query;
+
+  if (typeof contentType !== "string") {
+    return res.status(400).json({
+      error: "INVALID_INPUT",
+      message: "contentType is required",
+    });
+  }
+
+  try {
+    validateAvatarContentType(contentType);
+
+    const result = await createAvatarUploadUrl(userId, contentType);
+
+    return res.status(200).json(result);
+  } catch (err: any) {
+    return res.status(400).json({
+      error: "INVALID_INPUT",
+      message: err.message ?? "Invalid avatar upload request",
+    });
+  }
+}
+
+export async function confirmAvatarUpload(req: AuthenticatedRequest, res: Response) {
+  const userId = getAuthenticatedUserId(req, res);
+  if (!userId) {
+    return;
+  }
+
+  const { fileKey } = req.body ?? {};
+
+  if (typeof fileKey !== "string" || fileKey.trim() === "") {
+    return res.status(400).json({
+      error: "INVALID_INPUT",
+      message: "fileKey is required",
+    });
+  }
+
+  const normalizedFileKey = fileKey.trim();
+
+  if (!normalizedFileKey.startsWith(`avatars/${userId}/`)) {
+    return res.status(403).json({
+      error: "FORBIDDEN",
+      message: "Invalid avatar key",
+    });
+  }
+
+  try {
+    const avatarUrl = buildPublicFileUrl(normalizedFileKey);
+    const user = await updateUserAvatar(userId, avatarUrl);
+
+    return res.status(200).json({ user });
+  } catch (err: any) {
+    if (err instanceof AuthError && err.code === "USER_NOT_FOUND") {
+      return res.status(404).json({
+        error: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    console.error("AUTH 500 ERROR:", err);
+
+    return res.status(500).json({
+      error: "INTERNAL_SERVER_ERROR",
+      message: "Internal server error",
+    });
+  }
+}
+
+
+
