@@ -14,7 +14,8 @@ export interface RegisterRequest {
 }
 
 export interface UpdateProfileRequest {
-    displayName: string;
+    displayName?: string;
+    avatarUrl?: string | null;
 }
 
 export interface ChangePasswordRequest {
@@ -33,6 +34,7 @@ export interface AuthResponse {
         id: string;
         email: string;
         displayName: string;
+        avatarUrl?: string | null;
     };
 }
 
@@ -41,6 +43,7 @@ export interface UpdateProfileResponse {
         id: string;
         email: string;
         displayName: string;
+        avatarUrl?: string | null;
     };
 }
 
@@ -51,4 +54,11 @@ export interface AuthUser {
     id: string;
     email: string;
     displayName: string;
+    avatarUrl?: string | null;
+}
+
+export interface AvatarUploadResponse {
+    uploadUrl: string;
+    fileKey: string;
+    publicUrl: string;
 }

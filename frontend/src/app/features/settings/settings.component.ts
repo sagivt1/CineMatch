@@ -9,6 +9,7 @@ import {
     Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import type { ChangePasswordRequest, DeleteAccountRequest, UpdateProfileRequest } from '../../core/models/auth.models';
 
@@ -28,6 +29,14 @@ type FeedbackState = {
     message: string;
 };
 
+const AVATAR_OUTPUT_SIZE = 512;
+const AVATAR_MAX_INPUT_BYTES = 6 * 1024 * 1024;
+const AVATAR_TARGET_BYTES = 300 * 1024;
+const AVATAR_HARD_MAX_BYTES = 1024 * 1024;
+const AVATAR_MIN_QUALITY = 0.6;
+const AVATAR_START_QUALITY = 0.86;
+const AVATAR_QUALITY_STEP = 0.08;
+
 @Component({
     selector: 'app-settings',
     standalone: true,
@@ -40,6 +49,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
     private readonly router = inject(Router);
     private readonly revealTimers: ReturnType<typeof setTimeout>[] = [];
+    private objectPreviewUrl: string | null = null;
+    private avatarSelectionId = 0;
 
     readonly currentUser = this.auth.currentUser;
 
@@ -52,10 +63,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     readonly isPasswordSaving = signal(false);
     readonly isDeleting = signal(false);
     readonly isDeleteConfirming = signal(false);
+    readonly isAvatarUploading = signal(false);
+    readonly isAvatarProcessing = signal(false);
 
     readonly profileFeedback = signal<FeedbackState | null>(null);
     readonly passwordFeedback = signal<FeedbackState | null>(null);
     readonly deleteFeedback = signal<FeedbackState | null>(null);
+    readonly avatarFeedback = signal<FeedbackState | null>(null);
+
+    readonly avatarPreviewUrl = signal<string | null>(null);
+    readonly selectedAvatarFile = signal<File | null>(null);
 
     readonly profileForm = this.fb.group({
         displayName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
@@ -101,6 +118,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
         for (const timer of this.revealTimers) {
             clearTimeout(timer);
         }
+
+        this.clearPreviewUrl();
     }
 
     saveProfile(): void {
@@ -137,6 +156,106 @@ export class SettingsComponent implements OnInit, OnDestroy {
                 this.isProfileSaving.set(false);
             },
         });
+    }
+
+    onAvatarSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            this.avatarFeedback.set({
+                type: 'error',
+                message: 'Please upload a JPG, PNG, or WebP file.',
+            });
+            input.value = '';
+            return;
+        }
+
+        if (file.size > AVATAR_MAX_INPUT_BYTES) {
+            this.avatarFeedback.set({
+                type: 'error',
+                message: 'Avatar file must be under 6MB before optimization.',
+            });
+            input.value = '';
+            return;
+        }
+
+        const selectionId = ++this.avatarSelectionId;
+        this.isAvatarProcessing.set(true);
+        this.avatarFeedback.set({ type: 'success', message: 'Optimizing image...' });
+
+        void this.prepareAvatarFile(file).then((result) => {
+            if (selectionId !== this.avatarSelectionId) {
+                return;
+            }
+
+            this.selectedAvatarFile.set(result.file);
+            this.avatarFeedback.set({
+                type: 'success',
+                message: 'Preview ready. Save to upload.',
+            });
+
+            this.setPreviewUrl(result.previewUrl, true);
+        }).catch((err: Error) => {
+            if (selectionId !== this.avatarSelectionId) {
+                return;
+            }
+
+            this.avatarFeedback.set({
+                type: 'error',
+                message: err.message || 'Unable to optimize the image.',
+            });
+            this.selectedAvatarFile.set(null);
+            this.setPreviewUrl(null);
+        }).finally(() => {
+            if (selectionId === this.avatarSelectionId) {
+                this.isAvatarProcessing.set(false);
+            }
+        });
+
+        input.value = '';
+    }
+
+    uploadAvatar(): void {
+        const file = this.selectedAvatarFile();
+        if (!file || this.isAvatarUploading() || this.isAvatarProcessing()) {
+            return;
+        }
+
+        this.isAvatarUploading.set(true);
+        this.avatarFeedback.set(null);
+
+        this.auth.uploadAvatar(file).pipe(
+            finalize(() => this.isAvatarUploading.set(false)),
+        ).subscribe({
+            next: () => {
+                this.avatarFeedback.set({ type: 'success', message: 'Avatar updated successfully.' });
+                this.selectedAvatarFile.set(null);
+                this.setPreviewUrl(null);
+            },
+            error: (err: { error?: { message?: string } }) => {
+                this.avatarFeedback.set({
+                    type: 'error',
+                    message: err?.error?.message ?? (err as { message?: string })?.message ?? 'Unable to update avatar right now.',
+                });
+            },
+        });
+    }
+
+    getAvatarInitials(): string {
+        const name = this.currentUser()?.displayName ?? '';
+        const initials = name
+            .split(' ')
+            .filter(Boolean)
+            .map((part) => part[0]?.toUpperCase())
+            .slice(0, 2)
+            .join('');
+
+        return initials || 'CM';
     }
 
     updatePassword(): void {
@@ -211,5 +330,88 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private scheduleReveal(state: WritableSignal<boolean>, delayMs: number): void {
         const timer = setTimeout(() => state.set(true), delayMs);
         this.revealTimers.push(timer);
+    }
+
+    private setPreviewUrl(url: string | null, isObjectUrl = false): void {
+        this.clearPreviewUrl();
+        this.avatarPreviewUrl.set(url);
+        if (isObjectUrl) {
+            this.objectPreviewUrl = url;
+        }
+    }
+
+    private clearPreviewUrl(): void {
+        if (this.objectPreviewUrl) {
+            URL.revokeObjectURL(this.objectPreviewUrl);
+            this.objectPreviewUrl = null;
+        }
+    }
+
+    private async prepareAvatarFile(file: File): Promise<{ file: File; previewUrl: string }> {
+        const image = await this.loadImage(file);
+        const size = Math.min(image.width, image.height);
+        const sx = Math.max(0, (image.width - size) / 2);
+        const sy = Math.max(0, (image.height - size) / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = AVATAR_OUTPUT_SIZE;
+        canvas.height = AVATAR_OUTPUT_SIZE;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Unable to process the image.');
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(image.element, sx, sy, size, size, 0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE);
+        if ('close' in image.element && typeof (image.element as ImageBitmap).close === 'function') {
+            (image.element as ImageBitmap).close();
+        }
+
+        let quality = AVATAR_START_QUALITY;
+        let blob = await this.canvasToBlob(canvas, 'image/jpeg', quality);
+
+        while (blob.size > AVATAR_TARGET_BYTES && quality > AVATAR_MIN_QUALITY) {
+            quality = Math.max(AVATAR_MIN_QUALITY, quality - AVATAR_QUALITY_STEP);
+            blob = await this.canvasToBlob(canvas, 'image/jpeg', quality);
+        }
+
+        if (blob.size > AVATAR_HARD_MAX_BYTES) {
+            throw new Error('Avatar is still too large after optimization. Try a smaller image.');
+        }
+
+        const optimizedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        const previewUrl = URL.createObjectURL(blob);
+        return { file: optimizedFile, previewUrl };
+    }
+
+    private async loadImage(file: File): Promise<{ element: CanvasImageSource; width: number; height: number }> {
+        if ('createImageBitmap' in window) {
+            const bitmap = await createImageBitmap(file);
+            return { element: bitmap, width: bitmap.width, height: bitmap.height };
+        }
+
+        const imageUrl = URL.createObjectURL(file);
+        try {
+            const img = new Image();
+            img.src = imageUrl;
+            await img.decode();
+            return { element: img, width: img.naturalWidth, height: img.naturalHeight };
+        } finally {
+            URL.revokeObjectURL(imageUrl);
+        }
+    }
+
+    private canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('Image conversion failed.'));
+                    return;
+                }
+                resolve(blob);
+            }, type, quality);
+        });
     }
 }

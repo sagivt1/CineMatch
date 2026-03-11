@@ -16,6 +16,18 @@ export class TopbarComponent {
     readonly isAuthenticated = this.auth.isAuthenticated;
     readonly user = this.auth.currentUser;
 
+    getAvatarInitials(): string {
+        const name = this.user()?.displayName ?? '';
+        const initials = name
+            .split(' ')
+            .filter(Boolean)
+            .map((part) => part[0]?.toUpperCase())
+            .slice(0, 2)
+            .join('');
+
+        return initials || 'CM';
+    }
+
     onLogout(): void {
         this.auth.logout();
         this.router.navigate(['/']);

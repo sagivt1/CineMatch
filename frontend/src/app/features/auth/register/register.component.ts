@@ -34,6 +34,7 @@ const passwordComplexity: ValidatorFn = (control: AbstractControl): ValidationEr
     if (!/[A-Z]/.test(value)) errors['uppercase'] = true;
     if (!/[0-9]/.test(value)) errors['number'] = true;
     if (!/[^A-Za-z0-9]/.test(value)) errors['special'] = true;
+    if (!/[a-z]/.test(value)) errors['lowercase'] = true;
 
     return Object.keys(errors).length > 0 ? errors : null;
 };
