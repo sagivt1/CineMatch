@@ -4,19 +4,27 @@ It defines the FastAPI app instance, lifespan events, and API endpoints for
 managing movies.
 """
 
+import asyncio
 import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from db.db import get_db, init_db
 from models.movie import Movie
 from schemas.movie import MovieCreate, MovieResponse, UploadConfirmRequest
+from schemas.tmdbmovie import MovieDashboard, TmdbMovieList
 from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 from services.s3.config import get_s3_settings
 from services.s3.s3_service import get_s3_client, init_s3_bucket
+from services.tmdb.tmdbservice import (
+    get_now_playing_movies,
+    get_popular_movies,
+    get_top_rated_movies,
+    get_upcoming_movies,
+)
 
 from .dependencies import get_user_id
 
@@ -52,6 +60,58 @@ def health_check():
         dict: A dictionary with a "status" key indicating the service is "OK".
     """
     return {"status": "OK"}
+
+@app.get("/api/movies/dashboard/", response_model=MovieDashboard)
+async def get_movie_dashboard():
+
+    results = await asyncio.gather(
+        get_now_playing_movies(page=1),
+        get_popular_movies(page=1),
+        get_upcoming_movies(page=1),
+        get_top_rated_movies(page=1),
+        return_exceptions=True 
+    )
+
+    # Helper to safely grab the 'results' list from the TMDB response
+    def get_results(res):
+        if isinstance(res, dict) and "results" in res:
+            return res["results"]
+        return []
+    
+    return MovieDashboard(
+        now_playing=get_results(results[0]),
+        popular=get_results(results[1]),
+        upcoming=get_results(results[2]),
+        top_rated=get_results(results[3])
+    )
+
+@app.get("/api/movies/popular/", response_model=TmdbMovieList)
+async def get_popular(page: int = Query(1, ge=1)):
+    data = await get_popular_movies(page=page)
+    if not data:
+        raise HTTPException(status_code=502, detail="TMDB unreachable")
+    return data
+
+@app.get("/api/movies/now-playing/", response_model=TmdbMovieList)
+async def now_playing(page: int = Query(1, ge=1)):
+    data = await get_now_playing_movies(page=page)
+    if not data:
+        raise HTTPException(status_code=502, detail="TMDB unreachable")
+    return data
+
+@app.get("/api/movies/upcoming/", response_model=TmdbMovieList)
+async def upcoming(page: int = Query(1, ge=1)):
+    data = await get_upcoming_movies(page=page)
+    if not data:
+        raise HTTPException(status_code=502, detail="TMDB unreachable")
+    return data
+
+@app.get("/api/movies/top-rated/", response_model=TmdbMovieList)
+async def top_rated(page: int = Query(1, ge=1)):
+    data = await get_top_rated_movies(page=page)
+    if not data:
+        raise HTTPException(status_code=502, detail="TMDB unreachable")
+    return data
 
 
 @app.get("/api/movies/", response_model=list[MovieResponse])
