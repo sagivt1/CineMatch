@@ -5,8 +5,7 @@ This module sets up the SQLAlchemy engine, session factory, and base class for O
 It also provides a dependency function `get_db` for managing database sessions.
 """
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from models.base import Base
 
