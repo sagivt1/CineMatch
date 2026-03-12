@@ -5,8 +5,11 @@ This module handles the connection to RabbitMQ, initialization of exchanges,
 and publishing of events. It uses aio_pika for asynchronous AMQP communication.
 """
 import json
+
 import aio_pika
+
 from .config import get_rabbitmq_settings
+
 
 async def get_rabbitmq_connection():
     """

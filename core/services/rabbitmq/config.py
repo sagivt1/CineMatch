@@ -7,9 +7,9 @@ a cached function to access these settings efficiently.
 """
 from functools import lru_cache
 from pathlib import Path
+
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 # Determine the path to the .env file.
 # We navigate up from core/services/rabbitmq/config.py to the project root (CineMatch/).

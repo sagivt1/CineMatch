@@ -31,6 +31,7 @@ coverage/
 # Prisma
 /gateway/prisma/*.db
 /gateway/prisma/*.db-journal
+/gateway/src/generated/prisma
 
 # gateway 
 /gateway/node_modules

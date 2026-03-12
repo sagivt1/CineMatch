@@ -22,6 +22,5 @@ class Movie(Base):
     release_date: Mapped[date] = mapped_column(Date, nullable=True)
     # URL to the movie's poster image
     poster_url: Mapped[str] = mapped_column(String(255), nullable=True)
-
     # ID of the user who created this movie entry
     created_by_user_id: Mapped[int] = mapped_column(index=True, nullable=False)

@@ -5,15 +5,15 @@ This module contains unit tests for the movie-related API endpoints.
 It uses `unittest.mock` and `pytest` fixtures to isolate the tests from
 external dependencies like the database and RabbitMQ.
 """
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from db.db import get_db
+from services.s3.s3_service import get_s3_client
 from src.dependencies import get_user_id
 from src.main import app
-from services.s3.s3_service import get_s3_client
 
 
 @pytest.fixture

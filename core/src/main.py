@@ -13,10 +13,11 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db, init_db
 from models.movie import Movie
+from models.review import Review
 from schemas.movie import MovieCreate, MovieResponse, UploadConfirmRequest
+from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 from services.s3.config import get_s3_settings
 from services.s3.s3_service import get_s3_client, init_s3_bucket
-from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 
 from .dependencies import get_user_id
 
