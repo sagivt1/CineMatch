@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from db.db import get_db
-from dependencies import get_user_id
+from .dependencies import get_user_id
 from models.review import Review
 from schemas.review import ReviewCreate
 from schemas.tmdbmovie import MovieDashboard, MovieDetailWithReviews, TmdbMovieList
