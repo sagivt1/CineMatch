@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db, init_db
 from models.movie import Movie
-from models.review import Review
 from schemas.movie import MovieCreate, MovieResponse, UploadConfirmRequest
 from services.rabbitmq.rabbitmq import init_rabbitmq, publish_movie_event
 from services.s3.config import get_s3_settings
@@ -37,6 +36,7 @@ async def lifespan(app: FastAPI):
     await init_rabbitmq()
     yield
     print("[Core] Shutting Down FastApi")
+
 
 
 # Initialize the FastAPI application with a title and the lifespan context manager.

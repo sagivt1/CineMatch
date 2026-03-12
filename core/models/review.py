@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, Text
+from sqlalchemy import Index, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
