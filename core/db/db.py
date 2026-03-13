@@ -44,16 +44,7 @@ async def init_db():
     Initializes the database by creating all tables defined in the ORM models.
     This function is typically called on application startup.
     """
-    print(f"[DB] Tables registered in metadata: {list(Base.metadata.tables.keys())}", flush=True)
     print("[DB] Creating tables...", flush=True)
-    
-    async with engine.begin() as conn:
-        # WARNING: drop_all removes all data. Useful for development resets, 
-        # but commented out here to prevent accidental data loss.
-        # await conn.run_sync(Base.metadata.drop_all)
-        
-        # Create tables that don't exist yet
-        await conn.run_sync(Base.metadata.create_all)
         
     print("[DB] Tables created.", flush=True)
 
