@@ -16,6 +16,7 @@ export class MovieListComponent implements OnInit, OnDestroy {
     private readonly movieService = inject(MovieService);
     private carouselTimer: ReturnType<typeof setInterval> | null = null;
     private fadeTimer: ReturnType<typeof setTimeout> | null = null;
+    private heroPaused = false;
     private readonly slideDelayMs = 4500;
     private readonly fadeDurationMs = 450;
 
@@ -36,7 +37,6 @@ export class MovieListComponent implements OnInit, OnDestroy {
     });
     readonly recommendedMovies = computed(() => this.movies().slice(0, 8));
     readonly topMatches = computed(() => this.movies().slice(1, 7));
-    readonly continueWatching = computed(() => this.movies().slice(2, 6));
 
     ngOnInit(): void {
         this.loadMovies();
@@ -59,10 +59,6 @@ export class MovieListComponent implements OnInit, OnDestroy {
         return movie.genre.slice(0, 2).join(' • ');
     }
 
-    getProgress(index: number): number {
-        const progressMap = [65, 20, 90, 42];
-        return progressMap[index % progressMap.length];
-    }
 
     private loadMovies(): void {
         this.movieService.getMovies().subscribe({
@@ -92,9 +88,22 @@ export class MovieListComponent implements OnInit, OnDestroy {
         }
     }
 
+    pauseHeroCarousel(): void {
+        this.heroPaused = true;
+        if (this.fadeTimer) {
+            clearTimeout(this.fadeTimer);
+            this.fadeTimer = null;
+            this.isHeroFading.set(false);
+        }
+    }
+
+    resumeHeroCarousel(): void {
+        this.heroPaused = false;
+    }
+
     private advanceHero(): void {
         const heroes = this.heroMovies();
-        if (heroes.length < 2 || this.isHeroFading()) {
+        if (this.heroPaused || heroes.length < 2 || this.isHeroFading()) {
             return;
         }
 

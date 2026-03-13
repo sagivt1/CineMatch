@@ -36,10 +36,11 @@
                 <h1>{{ heroMovie()?.title }}</h1>
                 <p>{{ heroMovie()?.description }}</p>
 
-                <div class="hero-actions">
-                    <a [routerLink]="['/movies', heroMovie()?.id]" class="btn-primary">
-                        <span class="material-symbols-outlined">play_arrow</span>
-                        Watch Now
+                <div class="hero-actions" (mouseenter)="pauseHeroCarousel()" (mouseleave)="resumeHeroCarousel()"
+                    (focusin)="pauseHeroCarousel()" (focusout)="resumeHeroCarousel()">
+                    <a [routerLink]="['/movies', heroMovie()?.id]" [fragment]="'where-to-watch'" class="btn-primary">
+                        <span class="material-symbols-outlined">tv</span>
+                        Where to Watch
                     </a>
                     <a [routerLink]="['/movies', heroMovie()?.id]" class="btn-secondary">
                         <span class="material-symbols-outlined">info</span>
@@ -50,6 +51,34 @@
         </section>
 
         <div class="content-stack">
+            <section class="filter-bar" appScrollReveal [revealDelay]="70">
+                <div class="filter-group">
+                    <button class="filter-chip filter-chip--active" type="button">All Movies</button>
+                    <button class="filter-chip" type="button">
+                        Genre
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                    <button class="filter-chip" type="button">
+                        Release Year
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                    <button class="filter-chip" type="button">
+                        Match Score
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                    <button class="filter-chip" type="button">
+                        Language
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                </div>
+
+                <button class="sort-chip" type="button">
+                    <span class="sort-label">Sort by:</span>
+                    <span class="sort-value">Most Relevant</span>
+                    <span class="material-symbols-outlined">expand_more</span>
+                </button>
+            </section>
+
             <section appScrollReveal [revealDelay]="80">
                 <div class="section-head">
                     <div class="section-title-wrap">
@@ -91,7 +120,7 @@
                                 <h4>{{ movie.title }}</h4>
                                 <p>{{ movie.description }}</p>
                                 <div class="match-actions">
-                                    <span class="watch-chip">Watch</span>
+                                    <span class="watch-chip">Providers</span>
                                     <span class="material-symbols-outlined">add</span>
                                 </div>
                             </div>
@@ -100,24 +129,72 @@
                 </div>
             </section>
 
-            <section appScrollReveal [revealDelay]="200">
-                <div class="section-head">
-                    <h3>Continue Watching</h3>
+            <section class="critics-section" appScrollReveal [revealDelay]="200">
+                <div class="section-head critics-head">
+                    <div class="critics-title">
+                        <span class="material-symbols-outlined trophy">emoji_events</span>
+                        <h3>Critics' Favorites</h3>
+                    </div>
+                    <a routerLink="/movies" class="section-link">Explore Award Winners</a>
                 </div>
 
-                <div class="continue-row no-scrollbar">
-                    @for (movie of continueWatching(); track movie.id) {
-                        <a [routerLink]="['/movies', movie.id]" class="continue-card">
-                            <div class="continue-thumb">
-                                <img [src]="movie.backdropUrl || movie.posterUrl" [alt]="movie.title" />
-                                <div class="progress">
-                                    <div [style.width.%]="getProgress($index)"></div>
-                                </div>
-                            </div>
-                            <h4>{{ movie.title }}</h4>
-                            <p>{{ getProgress($index) }}% completed</p>
-                        </a>
-                    }
+                <div class="critics-row no-scrollbar">
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Drama' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://www.themoviedb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg"
+                                alt="Drama" />
+                        </div>
+                        <span>Drama</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Horror' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://media.themoviedb.org/t/p/w500/ylkdrn23p3gQcHx7ukIfuy2CkTE.jpg"
+                                alt="Horror" />
+                        </div>
+                        <span>Horror</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Comedy' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://www.themoviedb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg"
+                                alt="Comedy" />
+                        </div>
+                        <span>Comedy</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Sci-Fi' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://www.themoviedb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg"
+                                alt="Sci-Fi" />
+                        </div>
+                        <span>Sci-Fi</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Action' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://www.themoviedb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg"
+                                alt="Action" />
+                        </div>
+                        <span>Action</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Thriller' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://media.themoviedb.org/t/p/w500/7I6VUdPj6tQECNHdviJkUHD2u89.jpg"
+                                alt="Thriller" />
+                        </div>
+                        <span>Thriller</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Documentary' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://www.themoviedb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg"
+                                alt="Documentary" />
+                        </div>
+                        <span>Docu</span>
+                    </a>
+                    <a [routerLink]="['/movies']" [queryParams]="{ genre: 'Anime' }" class="critics-card">
+                        <div class="critics-thumb">
+                            <img src="https://media.themoviedb.org/t/p/w500/2ssWTSVklAEc98frZUQhgtGHx7s.jpg"
+                                alt="Anime" />
+                        </div>
+                        <span>Anime</span>
+                    </a>
                 </div>
             </section>
 

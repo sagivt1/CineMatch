@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 export class TopbarComponent {
     private readonly auth = inject(AuthService);
     private readonly router = inject(Router);
+    @ViewChild('profileMenu') private readonly profileMenu?: ElementRef<HTMLDetailsElement>;
 
     readonly isAuthenticated = this.auth.isAuthenticated;
     readonly user = this.auth.currentUser;
@@ -31,5 +32,26 @@ export class TopbarComponent {
     onLogout(): void {
         this.auth.logout();
         this.router.navigate(['/']);
+    }
+
+    closeProfileMenu(): void {
+        if (this.profileMenu?.nativeElement?.open) {
+            this.profileMenu.nativeElement.open = false;
+        }
+    }
+
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: MouseEvent): void {
+        const menu = this.profileMenu?.nativeElement;
+        if (!menu?.open) return;
+        const target = event.target as Node;
+        if (!menu.contains(target)) {
+            menu.open = false;
+        }
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscape(): void {
+        this.closeProfileMenu();
     }
 }

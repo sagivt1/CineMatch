@@ -23,11 +23,6 @@ export class App {
 
       if (event instanceof NavigationEnd) {
         requestAnimationFrame(() => this.pageVisible.set(true));
-        setTimeout(() => {
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-          window.scrollTo(0, 0);
-        }, 50);
       }
     });
   }

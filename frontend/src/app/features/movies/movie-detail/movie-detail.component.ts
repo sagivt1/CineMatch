@@ -4,13 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MovieService } from '../../../core/services/movie.service';
 import { Movie } from '../../../core/models/movie.models';
-import { MovieRowComponent } from '../components/movie-row/movie-row.component';
 import { ScrollRevealDirective } from '../../../core/directives/scroll-reveal.directive';
 
 @Component({
     selector: 'app-movie-detail',
     standalone: true,
-    imports: [CommonModule, RouterLink, MovieRowComponent, ScrollRevealDirective],
+    imports: [CommonModule, RouterLink, ScrollRevealDirective],
     templateUrl: './movie-detail.component.html',
     styleUrls: ['./movie-detail.component.css']
 })

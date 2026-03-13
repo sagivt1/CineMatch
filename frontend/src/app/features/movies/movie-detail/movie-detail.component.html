@@ -3,7 +3,7 @@
     @if (loading()) {
     <div class="loading-state" appScrollReveal>
         <div class="loader"></div>
-        <p>Gathering cinematic data...</p>
+        <p>Loading movie details...</p>
     </div>
     }
 
@@ -18,67 +18,208 @@
     </div>
     }
 
-    <!-- Immersive Content -->
+    <!-- Movie Detail -->
     @if (!loading() && !error() && movie(); as movieData) {
-    <div class="movie-backdrop">
-        <img [src]="movie()!.backdropUrl || movie()!.posterUrl" alt="" class="backdrop-img">
-        <div class="backdrop-overlay"></div>
-    </div>
-
-    <div class="movie-content">
-        <div class="detail-grid" appScrollReveal [revealDelay]="80">
-            <div class="poster-column">
-                <img [src]="movieData.posterUrl" [alt]="movieData.title" class="detail-poster">
+    <main class="movie-detail">
+        <section class="detail-hero">
+            <div class="detail-hero__media">
+                <img [src]="movieData.backdropUrl || movieData.posterUrl" [alt]="movieData.title"
+                    class="detail-hero__image">
+                <div class="detail-hero__overlay detail-hero__overlay--vertical"></div>
+                <div class="detail-hero__overlay detail-hero__overlay--horizontal"></div>
             </div>
 
-            <div class="info-column">
-                <button class="back-link" routerLink="/movies">
-                    <span>←</span> Back to Catalog
+            <div class="detail-shell detail-hero__content" appScrollReveal [revealDelay]="80">
+                <button class="back-link" routerLink="/movies" type="button">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Back to Catalog
                 </button>
 
-                <h1 class="title">{{ movieData.title }}</h1>
-
-                <div class="meta">
-                    <span class="rating">⭐ {{ movieData.rating }}</span>
-                    <span class="separator">/</span>
-                    <span class="year">{{ movieData.releaseDate | date:'yyyy' }}</span>
-                    <span class="separator">/</span>
-                    <span class="duration">{{ movieData.durationMinutes }} min</span>
+                <div class="detail-hero__badge">
+                    <span class="material-symbols-outlined">bolt</span>
+                    {{ (movieData.rating * 10) | number:'1.0-0' }}% AI Match
                 </div>
 
-                <div class="genres">
-                    @for (genre of movieData.genre; track genre) {
-                    <span class="genre-tag">{{ genre }}</span>
-                    }
+                <h1 class="detail-hero__title">{{ movieData.title }}</h1>
+
+                <div class="detail-hero__meta">
+                    <span class="meta-item">
+                        <span class="material-symbols-outlined">calendar_today</span>
+                        {{ movieData.releaseDate | date:'yyyy' }}
+                    </span>
+                    <span class="meta-item">
+                        <span class="material-symbols-outlined">schedule</span>
+                        {{ movieData.durationMinutes }} min
+                    </span>
+                    <span class="meta-item rating">
+                        <span class="material-symbols-outlined">star</span>
+                        {{ movieData.rating }}
+                    </span>
+                    <span class="meta-tag">{{ movieData.genre[0] }}</span>
                 </div>
 
-                <p class="description">{{ movieData.description }}</p>
-
-                <div class="credits">
-                    <div class="credit-item">
-                        <span class="label">Director</span>
-                        <span class="value">{{ movieData.director }}</span>
-                    </div>
-                    <div class="credit-item">
-                        <span class="label">Cast</span>
-                        <span class="value">{{ movieData.cast.join(', ') }}</span>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button class="play-btn">Play Experience</button>
-                    <button class="watchlist-btn">+ Watchlist</button>
+                <div class="detail-hero__actions">
+                    <a [routerLink]="['/movies', movieData.id]" [fragment]="'where-to-watch'"
+                        class="action-btn action-btn--primary">
+                        <span class="material-symbols-outlined">tv</span>
+                        Where to Watch
+                    </a>
+                    <button class="action-btn action-btn--secondary" type="button">
+                        <span class="material-symbols-outlined">add</span>
+                        Add to List
+                    </button>
+                    <button class="action-btn action-btn--icon" type="button" aria-label="Share">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- "More Like This" Section -->
+        <section class="detail-body">
+            <div class="detail-shell detail-grid">
+                <div class="detail-main">
+                    <article class="detail-block">
+                        <h2 class="detail-heading detail-heading--accent">Synopsis</h2>
+                        <p class="detail-synopsis">{{ movieData.description }}</p>
+                    </article>
+
+                    <article class="detail-block" id="where-to-watch">
+                        <h2 class="detail-heading">Where to Watch</h2>
+                        <p class="provider-note">Providers coming soon. We are finalizing streaming availability for
+                            this title.</p>
+                        <div class="provider-list">
+                            <button class="provider-chip" type="button" disabled>Netflix</button>
+                            <button class="provider-chip" type="button" disabled>Prime Video</button>
+                            <button class="provider-chip" type="button" disabled>Disney+</button>
+                            <button class="provider-chip" type="button" disabled>Max</button>
+                            <button class="provider-chip" type="button" disabled>Apple TV</button>
+                        </div>
+                    </article>
+
+                    <article class="detail-block">
+                        <h2 class="detail-heading">Trailers &amp; Extras</h2>
+                        <div class="trailers-grid">
+                            <div class="trailer-card">
+                                <img [src]="movieData.backdropUrl || movieData.posterUrl" alt="Official teaser"
+                                    class="trailer-image">
+                                <div class="trailer-overlay">
+                                    <span class="material-symbols-outlined">play_circle</span>
+                                </div>
+                                <div class="trailer-label">Official Teaser</div>
+                            </div>
+                            <div class="trailer-card">
+                                <img [src]="movieData.posterUrl" alt="Behind the scenes" class="trailer-image">
+                                <div class="trailer-overlay">
+                                    <span class="material-symbols-outlined">play_circle</span>
+                                </div>
+                                <div class="trailer-label">The Making Of</div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="detail-block">
+                        <div class="detail-heading-row">
+                            <h2 class="detail-heading">User Reviews</h2>
+                            <button class="review-cta" type="button">
+                                Write a review
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                        </div>
+                        <div class="review-list">
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="review-avatar">
+                                        <span class="material-symbols-outlined">person</span>
+                                    </div>
+                                    <div>
+                                        <p class="review-name">Sarah Jenkins</p>
+                                        <div class="review-stars">
+                                            <span class="material-symbols-outlined">star</span>
+                                            <span class="material-symbols-outlined">star</span>
+                                            <span class="material-symbols-outlined">star</span>
+                                            <span class="material-symbols-outlined">star</span>
+                                            <span class="material-symbols-outlined">star</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="review-body">
+                                    A visual masterpiece that pays incredible homage to the original while carving its
+                                    own unique identity. The score is breathtaking.
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <aside class="detail-sidebar">
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">Cast &amp; Crew</h3>
+                        <div class="crew-list">
+                            <div class="crew-item">
+                                <div class="crew-avatar">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+                                <div class="crew-meta">
+                                    <p class="crew-name">{{ movieData.director }}</p>
+                                    <p class="crew-role">Director / Producer</p>
+                                </div>
+                            </div>
+                            @for (actor of movieData.cast | slice:0:2; track actor) {
+                            <div class="crew-item">
+                                <div class="crew-avatar">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+                                <div class="crew-meta">
+                                    <p class="crew-name">{{ actor }}</p>
+                                    <p class="crew-role">Cast</p>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">Production Details</h3>
+                        <div class="production-list">
+                            <div class="production-row">
+                                <span class="production-label">Studio</span>
+                                <span class="production-value">Syncopy Films</span>
+                            </div>
+                            <div class="production-row">
+                                <span class="production-label">Country</span>
+                                <span class="production-value">USA / UK</span>
+                            </div>
+                            <div class="production-row">
+                                <span class="production-label">Language</span>
+                                <span class="production-value">English</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
         @if (relatedMovies().length > 0) {
-        <div class="related-section" appScrollReveal [revealDelay]="160">
-            <app-movie-row title="More Like This" [movies]="relatedMovies()">
-            </app-movie-row>
-        </div>
+        <section class="related-section" appScrollReveal [revealDelay]="160">
+            <div class="detail-shell">
+                <h2 class="detail-heading">More Like This</h2>
+                <div class="related-grid">
+                    @for (movie of relatedMovies(); track movie.id) {
+                    <article class="related-card">
+                        <div class="related-media">
+                            <img [src]="movie.posterUrl" [alt]="movie.title" class="related-image">
+                            <div class="related-overlay">
+                                <span class="material-symbols-outlined">play_circle</span>
+                            </div>
+                        </div>
+                        <h3 class="related-title">{{ movie.title }}</h3>
+                        <p class="related-meta">{{ movie.releaseDate | date:'yyyy' }} • {{ movie.genre[0] }}</p>
+                    </article>
+                    }
+                </div>
+            </div>
+        </section>
         }
-    </div>
+    </main>
     }
 </div>

@@ -23,8 +23,9 @@ import { Movie } from '../../../../core/models/movie.models';
           <p class="hero-description">{{ movie.description }}</p>
           
           <div class="hero-actions">
-            <button class="btn-play" [routerLink]="['/movies', movie.id]">
-              <span class="play-icon">▶</span> Play Now
+            <button class="btn-play" [routerLink]="['/movies', movie.id]" [fragment]="'where-to-watch'">
+              <span class="material-symbols-outlined">tv</span>
+              Where to Watch
             </button>
             <button class="btn-info" [routerLink]="['/movies', movie.id]">
               More Info
@@ -127,6 +128,10 @@ import { Movie } from '../../../../core/models/movie.models';
     .btn-play:hover {
       background: var(--color-accent);
       transform: scale(1.05);
+    }
+
+    .btn-play .material-symbols-outlined {
+      font-size: 1.3rem;
     }
 
     .btn-info {
