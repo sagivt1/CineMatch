@@ -60,6 +60,8 @@ class MovieDashboard(BaseModel):
     upcoming: List[TmdbMovie]
     # Highest rated movies of all time
     top_rated: List[TmdbMovie]
+    # Error indicator for each list
+    errors: List[str] = []
 
 class MovieDetailWithReviews(TmdbMovie):
     """

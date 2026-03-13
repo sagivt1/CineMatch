@@ -80,9 +80,21 @@ async def add_review(
 @router.get("/dashboard/", response_model=MovieDashboard)
 async def get_movie_dashboard():
     """
-    Aggregates lists of movies (Now Playing, Popular, Upcoming, Top Rated) for the dashboard.
-    
-    Requests are made concurrently to TMDB to minimize loading time.
+    Retrieves and aggregates movie data for the application dashboard.
+
+    This endpoint concurrently fetches four categories of movies from TMDB:
+    - Now Playing
+    - Popular
+    - Upcoming
+    - Top Rated
+
+    It employs a fail-safe mechanism where failure in one category does not 
+    block the others. Errors for specific categories are collected and 
+    returned in the response payload.
+
+    Returns:
+        MovieDashboard: An object containing movie lists for each category 
+                        and a list of error messages for any failed requests.
     """
 
     # Execute all 4 API calls in parallel using asyncio.gather
@@ -94,18 +106,23 @@ async def get_movie_dashboard():
         return_exceptions=True 
     )
 
-    # Helper to safely grab the 'results' list from the TMDB response
-    def get_results(res):
+    errors = []
+
+    def process_result(res, category_name):
+        if isinstance(res, Exception) or res is None:
+            errors.append(f"Failed to load {category_name}")
+            return []
         if isinstance(res, dict) and "results" in res:
             return res["results"]
         return []
-    
+
     # Map results to the Dashboard schema
     return MovieDashboard(
-        now_playing=get_results(results[0]),
-        popular=get_results(results[1]),
-        upcoming=get_results(results[2]),
-        top_rated=get_results(results[3])
+        now_playing=process_result(results[0], "now_playing"),
+        popular=process_result(results[1], "popular"),
+        upcoming=process_result(results[2], "upcoming"),
+        top_rated=process_result(results[3], "top_rated"),
+        errors=errors
     )
 
 
