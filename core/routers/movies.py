@@ -10,15 +10,17 @@ import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from db.db import get_db
-from .dependencies import get_user_id
 from models.review import Review
-from schemas.review import ReviewCreate
+from schemas.review import ReviewCreate, ReviewRead
 from schemas.tmdbmovie import MovieDashboard, MovieDetailWithReviews, TmdbMovieList
 from services.tmdb.tmdbservice import get_movie_details, get_now_playing_movies, get_popular_movies, get_top_rated_movies, get_upcoming_movies
+
+from .dependencies import get_user_id
 
 router = APIRouter(
     prefix="/api/movies",
@@ -27,19 +29,31 @@ router = APIRouter(
 )
 
 
-@router.post("/review/", status_code=status.HTTP_201_CREATED)
+@router.post("/review/",response_model=ReviewRead ,status_code=status.HTTP_201_CREATED)
 async def add_review(
     payload: ReviewCreate,
     user_id: Annotated[str, Depends(get_user_id)], 
     db: AsyncSession = Depends(get_db)):
     """
-    Submits a new user review for a specific movie.
-    
-    Expects a JSON payload with the movie ID, rating, and content.
-    The user ID is extracted from the request headers.
+    Creates a new review for a movie.
+
+    This endpoint accepts a review payload, associates it with the authenticated user,
+    and persists it to the database. It enforces a unique constraint to ensure
+    a user can only review a specific movie once.
+
+    Args:
+        payload (ReviewCreate): The review data (TMDB ID, rating, content).
+        user_id (str): The authenticated user's ID, extracted from headers.
+        db (AsyncSession): The database session dependency.
+
+    Returns:
+        Review: The created review object with generated fields (id, created_at).
+
+    Raises:
+        HTTPException: 400 Bad Request if the user has already reviewed the movie.
     """
 
-    # Create the review instance from the payload and user ID
+    # Create the ORM model from the input payload
     new_review = Review(
         tmdb_id=payload.tmdb_id,
         user_id=int(user_id),
@@ -49,16 +63,18 @@ async def add_review(
 
     db.add(new_review)
     try:
-        # Commit to save the review to the database
+        # Commit the transaction to save the review
         await db.commit()
-        # Refresh the instance to get generated fields (like id and created_at)
+        # Refresh the instance to retrieve DB-generated fields
         await db.refresh(new_review)
         return new_review
-    except Exception:
-        # Rollback in case of error (e.g., UniqueConstraint violation if user already reviewed this movie)
-        # Ideally, catch sqlalchemy.exc.IntegrityError specifically here.
+    except IntegrityError:
+        # Handle duplicate reviews (UniqueConstraint violation)
         await db.rollback()
-        raise HTTPException(status_code=400, detail="You have already reviewed this movie.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="You have already reviewed this movie."
+        )
     
 
 @router.get("/dashboard/", response_model=MovieDashboard)
@@ -98,7 +114,7 @@ async def get_popular(page: int = Query(1, ge=1)):
     """Fetches a paginated list of popular movies."""
     data = await get_popular_movies(page=page)
     if not data:
-        raise HTTPException(status_code=502, detail="TMDB unreachable")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TMDB unreachable")
     return data
 
 
@@ -107,7 +123,7 @@ async def now_playing(page: int = Query(1, ge=1)):
     """Fetches a paginated list of movies currently in theaters."""
     data = await get_now_playing_movies(page=page)
     if not data:
-        raise HTTPException(status_code=502, detail="TMDB unreachable")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TMDB unreachable")
     return data
 
 
@@ -116,7 +132,7 @@ async def upcoming(page: int = Query(1, ge=1)):
     """Fetches a paginated list of upcoming movies."""
     data = await get_upcoming_movies(page=page)
     if not data:
-        raise HTTPException(status_code=502, detail="TMDB unreachable")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TMDB unreachable")
     return data
 
 
@@ -125,7 +141,7 @@ async def top_rated(page: int = Query(1, ge=1)):
     """Fetches a paginated list of top-rated movies."""
     data = await get_top_rated_movies(page=page)
     if not data:
-        raise HTTPException(status_code=502, detail="TMDB unreachable")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TMDB unreachable")
     return data
 
 
@@ -157,7 +173,7 @@ async def get_movie_page(tmdb_id: int, db: AsyncSession = Depends(get_db)):
         raise e
 
     if not movie_data:
-        raise HTTPException(status_code=404, detail="Movie not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
     # Combine TMDB data with the list of review objects
     return {

@@ -39,8 +39,6 @@ class ReviewRead(BaseModel):
     """
     # Unique identifier of the review in the database
     id: int
-    # The ID of the user who wrote the review
-    user_id: int
     # The rating given by the user (1-10)
     rating: int
     # The text content of the review

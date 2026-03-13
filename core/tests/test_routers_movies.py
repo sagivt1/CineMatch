@@ -12,15 +12,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Import the main app (assuming it mounts the router)
-from src.main import app
 # Import dependencies to override
 from db.db import get_db
 from routers.dependencies import get_user_id
 
-
+# Import the main app (assuming it mounts the router)
+from src.main import app
 
 
 @pytest.fixture
@@ -160,6 +160,13 @@ def test_add_review_success(client, mock_db_session):
     Verifies that a review is successfully created when valid data is provided.
     Checks that the review is added to the session and committed.
     """
+    # Simulate DB generating ID and timestamp on refresh
+    def simulate_refresh(instance):
+        instance.id = 1
+        instance.created_at = datetime.now()
+
+    mock_db_session.refresh.side_effect = simulate_refresh
+
     payload = {
         "tmdb_id": 550,
         "rating": 9,
@@ -172,8 +179,8 @@ def test_add_review_success(client, mock_db_session):
     data = response.json()
     
     # Verify response content matches input
-    assert data["tmdb_id"] == 550
     assert data["rating"] == 9
+    assert data["id"] == 1
     
     # Verify DB interactions: item added, committed, and refreshed
     mock_db_session.add.assert_called_once()
@@ -189,7 +196,7 @@ def test_add_review_failure(client, mock_db_session):
     (e.g., due to a constraint violation like reviewing the same movie twice).
     """
     # Simulate a DB error during commit (e.g., integrity error)
-    mock_db_session.commit.side_effect = Exception("DB Error")
+    mock_db_session.commit.side_effect = IntegrityError(None, None, Exception("Duplicate"))
 
     payload = {
         "tmdb_id": 550,
