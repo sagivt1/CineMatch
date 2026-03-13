@@ -10,6 +10,7 @@ as well as detailed information for specific movies.
 from typing import Any, Dict, Optional
 
 import httpx
+from fastapi import HTTPException, status
 
 # import setting from tmdb/config
 from .config import get_tmdb_settings
@@ -95,14 +96,21 @@ async def get_top_rated_movies(page: int = 1) -> Optional[Dict[str, Any]]:
 
 async def get_movie_details(tmdb_id: int) -> Optional[Dict[str, Any]]:
     """
-    Fetches detailed information for a specific movie from TMDB.
+    Retrieves detailed metadata for a specific movie by its TMDB ID.
+
+    This function handles the external API call to TMDB. It manages error
+    translation, converting upstream HTTP errors or network failures into
+    FastAPI HTTPExceptions appropriate for the client.
 
     Args:
-        tmdb_id (int): The unique The Movie Database identifier for the movie.
+        tmdb_id (int): The unique The Movie Database (TMDB) identifier.
 
     Returns:
-        An optional dictionary containing the detailed movie data on success,
-        or None if an HTTP error occurs.
+        Optional[Dict[str, Any]]: A dictionary containing movie details if found,
+                                  or None if the movie does not exist (404).
+
+    Raises:
+        HTTPException: 502 Bad Gateway if TMDB returns a server error or is unreachable.
     """
     setting = get_tmdb_settings()
 
@@ -112,9 +120,24 @@ async def get_movie_details(tmdb_id: int) -> Optional[Dict[str, Any]]:
                 f"movie/{tmdb_id}",
                 params={"language": setting.TMDB_LANGUAGE},
             )
+
+            if response.status_code == status.HTTP_404_NOT_FOUND:
+                return None
+
             response.raise_for_status()
             return response.json()
-        except httpx.HTTPError as e:
-            # In a production environment, use a structured logger instead of print.
-            print(f"[TMDB] HTTP error while fetching details for {tmdb_id}: {e}", flush=True)
-            return None
+        
+        except httpx.HTTPStatusError as e:
+            # TMDB responded, but with an error (e.g., 500 Internal Server Error)
+            print(f"[TMDB] HTTP status error while fetching details for {tmdb_id}: {e}", flush=True)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="TMDB API error"
+            )
+        except httpx.RequestError as e:
+            # TMDB didn't even respond (e.g., DNS failure, timeout)
+            print(f"[TMDB] Network error while fetching details for {tmdb_id}: {e}", flush=True)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="TMDB unreachable"
+            )

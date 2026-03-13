@@ -178,17 +178,13 @@ async def get_movie_page(tmdb_id: int, db: AsyncSession = Depends(get_db)):
     query = select(Review).where(Review.tmdb_id == tmdb_id).order_by(Review.created_at.desc()).limit(10)
     db_task = db.execute(query)
 
-    try:
-        # Run both tasks concurrently to reduce total latency
-        movie_data, db_result = await asyncio.gather(
-            tmdb_task,
-            db_task,
-        )
-    except TypeError as e:
-        # This will tell us EXACTLY which one is not an awaitable
-        print(f"Gather failed. TMDB Coro: {tmdb_task}, DB Coro: {db_task}")
-        raise e
-
+    
+    # Run both tasks concurrently to reduce total latency
+    movie_data, db_result = await asyncio.gather(
+        tmdb_task,
+        db_task,
+    )
+   
     if not movie_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
