@@ -56,7 +56,7 @@ async def add_review(
     # Create the ORM model from the input payload
     new_review = Review(
         tmdb_id=payload.tmdb_id,
-        user_id=int(user_id),
+        user_id=user_id,
         rating=payload.rating,
         content=payload.content
     ) 

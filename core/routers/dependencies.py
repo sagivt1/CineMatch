@@ -7,24 +7,26 @@ from typing import Annotated
 from fastapi import Header, HTTPException, status
 
 
-async def get_user_id(user_id: Annotated[str | None, Header()] = None) -> str:
+async def get_user_id(x_user_id: Annotated[str | None, Header()] = None) -> str:
     """
     Dependency to retrieve the authenticated user's ID from the request headers.
 
+    This dependency expects the API Gateway to have already authenticated the user
+    and forwarded their ID via the 'X-User-Id' header.
+
     Args:
-        user_id (int | None): The user ID extracted from the 'user-id' header.
-                              FastAPI automatically converts the header value to an integer.
+        x_user_id (str | None): The user ID extracted from the 'X-User-Id' header.
 
     Returns:
-        int: The user ID if present.
+        str: The authenticated user's ID.
 
     Raises:
-        HTTPException: If the 'user-id' header is missing (401 Unauthorized).
+        HTTPException: 401 Unauthorized if the header is missing.
     """
-    if user_id is None:
+    if x_user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User-Id header missing. User identification required.",
+            detail="User authentication header missing from Gateway.",
         )
 
-    return user_id
+    return x_user_id
