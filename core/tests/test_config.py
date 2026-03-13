@@ -56,7 +56,7 @@ def test_database_url_construction(raw_env, settings):
 
     # Construct the expected URL manually using the raw environment values.
     expected_url = (
-        f"postgresql+psycopg2://{raw_env['POSTGRES_USER']}:"
+        f"postgresql+asyncpg://{raw_env['POSTGRES_USER']}:"
         f"{raw_env['POSTGRES_PASSWORD']}@{raw_env['POSTGRES_HOST']}:"
         f"{raw_env['POSTGRES_PORT']}/{raw_env['POSTGRES_DB']}"
     )
@@ -72,4 +72,4 @@ def test_engine_configuration(raw_env):
     # Check if the database name exists in the engine's connection URL.
     assert raw_env["POSTGRES_DB"] in str(engine.url)
     assert engine.dialect.name == "postgresql"
-    assert engine.dialect.driver == "psycopg2"
+    assert engine.dialect.driver == "asyncpg"
