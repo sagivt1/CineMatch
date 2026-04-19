@@ -131,7 +131,28 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
       - name: Disable SSL for CI
-        run: sed -i 's/ssl=require/ssl=disable/g' db/config.py
+        run: |
+          sed -i 's/ssl=require/ssl=disable/g' db/config.py
+          sed -i 's/ssl=require/ssl=disable/g' tests/test_config.py
+      - name: Create .env file for tests
+        run: |
+          echo "POSTGRES_USER=test_user" > .env
+          echo "POSTGRES_PASSWORD=test_password" >> .env
+          echo "POSTGRES_DB=core_test_db" >> .env
+          echo "POSTGRES_HOST=localhost" >> .env
+          echo "POSTGRES_PORT=5433" >> .env
+          echo "RABBITMQ_USER=rmq_admin" >> .env
+          echo "RABBITMQ_PASSWORD=rmq_password" >> .env
+          echo "RABBITMQ_HOST=localhost" >> .env
+          echo "RABBITMQ_PORT=5672" >> .env
+          echo "AI_RECOMMENDATION_QUEUE=ai.search.request" >> .env
+          echo "AI_REVIEW_SUMMARIZER_QUEUE=ai.review.summary.request" >> .env
+          echo "S3_ENDPOINT_URL=http://localhost:9000" >> .env
+          echo "S3_ACCESS_KEY_ID=mock" >> .env
+          echo "S3_SECRET_ACCESS_KEY=mock" >> .env
+          echo "S3_BUCKET_NAME=mock" >> .env
+          echo "S3_REGION=us-east-1" >> .env
+          echo "TMDB_READ_ACCESS_TOKEN=mock_token" >> .env
       - name: Install dependencies
         run: uv sync --dev
       - name: Lint (Ruff)
