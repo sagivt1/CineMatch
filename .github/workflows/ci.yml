@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Test
-        run: npm test -- --run # Run vitest once
+        run: npx vitest --run
 
   # 2. Gateway CI (Node.js/Prisma)
   gateway:
@@ -58,6 +58,7 @@ jobs:
       POSTGRES_SSLMODE: disable
       POSTGRES_CHANNEL_BINDING: disable
       JWT_SECRET: test_secret
+      CORE_SERVICE_URL: http://localhost:8081
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
