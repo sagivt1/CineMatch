@@ -8,6 +8,9 @@ on:
     branches-ignore:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # 1. Frontend CI (Angular)
   frontend:
