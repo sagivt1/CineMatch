@@ -77,8 +77,9 @@ jobs:
         run: npx prisma generate
       - name: Verify Prisma Migrations
         run: npx prisma migrate deploy
+      # TODO: Fix linting errors in gateway
       # - name: Lint
-      #   run: npm run lint # TODO: Fix linting errors in gateway
+      #   run: npm run lint
       - name: Test
         run: npm test
 
@@ -185,5 +186,8 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
       - name: Install dependencies
+        run: uv sync
+
+nstall dependencies
         run: uv sync
 
