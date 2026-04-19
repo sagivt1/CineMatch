@@ -25,10 +25,10 @@ interface Option<T extends string = string> {
   caption?: string;
 }
 
-type FeedbackState = {
+interface FeedbackState {
   type: 'success' | 'error';
   message: string;
-};
+}
 
 const GENRE_OPTIONS: Option<UserPreferenceGenre>[] = [
   { label: 'Thriller', value: 'Thriller' },
