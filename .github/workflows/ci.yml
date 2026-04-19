@@ -51,7 +51,7 @@ jobs:
       run:
         working-directory: gateway
     env:
-      DATABASE_URL: postgresql://test_user:test_password@localhost:5432/gateway_test_db
+      DATABASE_URL: postgresql://test_user:test_password@localhost:5432/gateway_test_db?sslmode=disable
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: gateway_test_db
@@ -120,6 +120,8 @@ jobs:
           cache-dependency-path: core/uv.lock
       - name: Set up Python
         run: uv python install 3.12
+      - name: Disable SSL for CI
+        run: sed -i 's/ssl=require/ssl=disable/g' db/config.py
       - name: Install dependencies
         run: uv sync --dev
       - name: Lint (Ruff)
